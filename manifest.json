@@ -1,0 +1,17 @@
+{
+  "short_name": "Звіт БПЛА",
+  "name": "Система звітів БПЛА",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#050607",
+  "display": "standalone",
+  "scope": "./",
+  "theme_color": "#050607"
+}

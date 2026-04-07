@@ -1,0 +1,804 @@
+<!--
+  Report UAV — main application page.
+  Звіт БПЛА — головна сторінка додатку.
+
+  Single-page form: crew, date, drone, mission type, takeoff/impact time,
+  MGRS-style coordinates (prefix + easting + northing), ammo, stream, result.
+  Script entry: js/app.js (ES module).
+-->
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <title>Звіт БПЛА</title>
+
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Leaflet map -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+</head>
+
+<body>
+
+<div class="wrap">
+
+<div class="title" id="title">Звіт по БПЛА</div>
+
+<!-- Screen 1 -->
+<div class="screen" id="screen-main">
+
+<div class="card">
+
+<label>
+Екіпаж:
+
+<div class="row">
+<input id="crew" value="Дакар" placeholder="Дакар" maxlength="20" autocomplete="off" spellcheck="false"/>
+
+<input
+id="crewCounter"
+class="small"
+inputmode="numeric"
+placeholder="1..25"
+maxlength="2"
+autocomplete="off"
+/>
+</div>
+
+<div class="error" id="counterError"></div>
+</label>
+
+<label>
+Дата:
+<input type="date" id="datePicker"/>
+</label>
+
+<label>
+Борт (утримуй для вводу):
+<select id="drone"></select>
+<datalist id="droneList"></datalist>
+</label>
+
+<label>
+Характер (утримуй для вводу):
+<select id="missionType"></select>
+<datalist id="missionTypeList"></datalist>
+</label>
+
+<label>
+Час зльоту:
+
+<div class="row">
+<input type="time" id="takeoff"/>
+<button class="btn" type="button" id="btnNowTakeoff">Зараз</button>
+</div>
+</label>
+
+<label>
+Час ураження/втрати:
+
+<div class="row">
+<input type="time" id="impact"/>
+<button class="btn" type="button" id="btnNowImpact">Зараз</button>
+</div>
+</label>
+
+<label>
+Координати:
+
+<select id="mgrsPrefix"></select>
+
+<div class="row">
+<input id="easting"
+inputmode="numeric"
+maxlength="5"
+placeholder="71821"
+autocomplete="off"/>
+
+<input id="northing"
+inputmode="numeric"
+maxlength="5"
+placeholder="74569"
+autocomplete="off"/>
+</div>
+
+<div class="error" id="coordError"></div>
+</label>
+
+<label>
+Боєприпас (утримуй для вводу):
+<select id="ammo"></select>
+<datalist id="ammoList"></datalist>
+</label>
+
+<label>
+Стрім:
+<input
+id="stream"
+value="---"
+placeholder="---"
+maxlength="18"
+autocomplete="off"
+spellcheck="false"
+/>
+</label>
+
+<label>
+Результат (утримуй для вводу):
+<span class="settings-note" style="display:block;margin-top:4px;font-weight:400;">
+Спочатку тип для статистики (ураження, втрата тощо), за потреби через пробіл — коментар у круглих дужках.
+Наприклад: <strong>Ураження</strong> (знищення антени) або <strong>Втрата борта</strong> (падіння у воду).
+</span>
+<select id="result"></select>
+<datalist id="resultList"></datalist>
+</label>
+
+<button class="btn btnGreen" type="button" id="btnGenerate">
+Готово
+</button>
+
+<label style="margin-top:14px;">
+Готовий результат:
+<textarea id="output"
+placeholder="Готовий звіт"
+readonly></textarea>
+</label>
+
+<div class="status" id="status"></div>
+
+</div>
+</div>
+
+<!-- Screen 2 -->
+<div class="screen screenHidden" id="screen-journal">
+
+<div class="card">
+
+<label>
+Період:
+  <div class="journal-period-block">
+    <div class="row">
+      <input type="date" id="journalFrom"/>
+      <input type="date" id="journalTo"/>
+    </div>
+
+    <div class="row" style="margin-top:10px;">
+      <input type="time" id="journalTimeFrom"/>
+      <input type="time" id="journalTimeTo"/>
+    </div>
+  </div>
+</label>
+
+<label>
+Час завершення (за «Час ураження/втрати»):
+</label>
+
+<button class="btn btn-apply" type="button" id="btnJournalApply">
+Показати
+</button>
+
+<div class="journal-filter-count" id="journalFilterCount" aria-live="polite"></div>
+
+<div id="dashboard">
+
+<div class="dashboard-kpi">
+
+<div class="kpi-box">
+<div class="kpi-label">Вильотів</div>
+<div class="kpi-value" id="kpiTotal">0</div>
+</div>
+
+<div class="kpi-box">
+<div class="kpi-label">Уражень</div>
+<div class="kpi-value success" id="kpiHits">0</div>
+</div>
+
+<div class="kpi-box">
+<div class="kpi-label">Втрат</div>
+<div class="kpi-value danger" id="kpiLoss">0</div>
+</div>
+
+<div class="kpi-box">
+<div class="kpi-label">Ефективність</div>
+<div class="kpi-value" id="kpiRate">0%</div>
+</div>
+
+</div>
+
+<div class="dashboard-tabs">
+<button id="tabStats" class="tab active" type="button">Статистика</button>
+<button id="tabJournal" class="tab" type="button">Журнал</button>
+</div>
+
+<p class="journal-archive-info" id="journalArchiveInfo" role="status"></p>
+
+<div id="statsSection">
+<div id="barsContainer"></div>
+<div class="journal-summary" id="journalSummary"></div>
+
+<button class="btn" type="button" id="btnCopyJournalSummary">
+Копіювати зведення
+</button>
+</div>
+
+<div id="journalSection" style="display:none;">
+
+<label style="margin-top:10px;">
+Пошук (по тексту звіту):
+
+<input
+id="journalSearch"
+placeholder="Напр. УАБК, Дакар, 12:30..."
+autocomplete="off"
+/>
+</label>
+
+<div id="journalListPanel" class="journal-list-panel">
+<div class="journal-toolbar-wrap">
+<div class="journal-toolbar">
+<button
+  class="btn btn-apply"
+  type="button"
+  id="btnJournalEnqueueSheet"
+  title="Усі звіти зі списку (крім відкладених) — у чергу на Google Sheets; уже надіслані підуть повторно (після очищення таблиці)."
+>
+Відправити список у таблицю
+</button>
+<button class="btn" type="button" id="btnJournalCopyAll">
+Копіювати всі зі списку
+</button>
+<button
+  class="btn journal-btn-danger"
+  type="button"
+  id="btnJournalDeleteFiltered"
+  title="Лишаються всі звіти, які зараз не потрапили до списку через період або пошук."
+>
+Видалити звіти зі списку
+</button>
+</div>
+</div>
+
+<div class="journal-list-frame" id="journalListFrame">
+<button
+  type="button"
+  class="journal-list-expand-bar"
+  id="journalListExpandBar"
+  aria-expanded="false"
+  aria-controls="journalCards"
+  title="Розгорнути список на всю висоту екрана"
+>
+  <span class="journal-list-expand-grip" aria-hidden="true"></span>
+  <span class="journal-list-expand-text">
+    <span class="journal-list-expand-label journal-list-expand-label--more">Розгорнути список</span>
+    <span class="journal-list-expand-label journal-list-expand-label--less">Згорнути список</span>
+  </span>
+</button>
+<div
+class="journal-cards"
+id="journalCards"
+aria-label="Звіти у періоді"
+></div>
+</div>
+</div>
+
+<dialog class="journal-edit-dialog" id="journalEditDialog" aria-labelledby="journalEditTitle">
+  <div class="journal-edit-inner">
+    <div class="journal-edit-title" id="journalEditTitle">Редагування звіту</div>
+    <div id="journalEditFields" class="journal-edit-fields" aria-label="Поля звіту"></div>
+    <div class="journal-edit-actions">
+      <button type="button" class="btn" id="journalEditCancel">Скасувати</button>
+      <button type="button" class="btn btn-apply" id="journalEditSave">Зберегти</button>
+    </div>
+  </div>
+</dialog>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+<!-- Screen 3: Дані та інтеграція -->
+<div class="screen screenHidden" id="screen-data">
+<div class="card">
+
+  <!-- Google Sheets integration -->
+  <div class="data-section">
+    <h2 class="data-section-title">Google Sheets</h2>
+    <p class="data-section-hint">
+      Публікація через веб-додаток Apps Script.
+      <a class="data-section-link" id="syncSheetLink" href="#" target="_blank" rel="noopener" style="display:none;">Відкрити таблицю ↗</a>
+    </p>
+
+    <label class="integration-label">Посилання на таблицю
+      <input type="url" id="syncGoogleSheetUrl" class="integration-input"
+             placeholder="https://docs.google.com/spreadsheets/..." autocomplete="off"/>
+    </label>
+    <label class="integration-label">URL Apps Script (Web App)
+      <input type="url" id="syncAppsScriptUrl" class="integration-input"
+             placeholder="https://script.google.com/macros/s/..." autocomplete="off"/>
+    </label>
+    <label class="integration-label">Режим відправки
+      <select id="syncSendMode" class="integration-input">
+        <option value="manual">Вручну</option>
+        <option value="immediate">Одразу після збереження</option>
+        <option value="delayed">З затримкою</option>
+      </select>
+    </label>
+    <label class="integration-label" id="syncDelayRow">Затримка (хв)
+      <input type="number" id="syncDelayMinutes" class="integration-input" min="0" step="1" max="10080"/>
+    </label>
+    <label class="integration-check">
+      <input type="checkbox" id="syncLockAfterSend"/>
+      Автоблокування після публікації
+    </label>
+    <label class="integration-check">
+      <input type="checkbox" id="syncCorrectionsOnly"/>
+      Лише режим виправлення після відправки
+    </label>
+
+    <div class="integration-actions">
+      <button type="button" class="btn" id="syncTestConnection">Перевірити з’єднання</button>
+      <button type="button" class="btn btn-apply" id="syncSaveSettings">Зберегти</button>
+      <button type="button" class="btn" id="syncResetSettings">Скинути</button>
+    </div>
+    <div class="status" id="integrationStatus" aria-live="polite"></div>
+  </div>
+
+  <!-- Encrypted backup -->
+  <div class="data-section">
+    <h2 class="data-section-title">Резервна копія</h2>
+    <p class="data-section-hint">
+      Зашифрований файл <code>.json</code>. Сумісний із v1 і v2 формату.
+      Ключ шифрування задаєте самостійно — зберігайте його окремо.
+    </p>
+    <div class="data-transfer-row">
+      <button class="data-transfer-btn" type="button" id="btnExportEncrypted">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <span>Експорт</span>
+      </button>
+      <button class="data-transfer-btn" type="button" id="btnImportEncrypted">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        <span>Імпорт</span>
+      </button>
+    </div>
+    <input type="file" id="importEncryptedFile" accept=".json,application/json" style="display:none;"/>
+    <div class="data-transfer-status" id="dataTransferStatus" aria-live="polite"></div>
+  </div>
+
+  <div class="data-section data-section-danger">
+    <h2 class="data-section-title">Очистити архів</h2>
+    <p class="data-section-hint">
+      Видаляє <strong>усі</strong> звіти з локальної бази (IndexedDB) у цьому браузері. Експортовані файли та таблиця Google не змінюються. Спочатку зробіть резервну копію, якщо потрібно.
+    </p>
+    <button
+      class="btn journal-btn-danger"
+      type="button"
+      id="btnDataDeleteAllReports"
+      title="Незворотно очищає весь журнал на цьому пристрої."
+    >
+      Видалити всі звіти
+    </button>
+  </div>
+
+</div>
+</div>
+
+<!-- Screen 4: Налаштування списків -->
+<div class="screen screenHidden" id="screen-settings">
+<div class="card">
+
+<div id="listsEditor">
+
+<div class="listsEditorHeader">
+<h2>Редактор списків</h2>
+
+<button
+id="listsQuickSaveBtn"
+type="button"
+title="Зберегти зміни"
+>
+💾
+</button>
+</div>
+
+<div id="listsTabs"></div>
+
+<ul id="listsItems"></ul>
+
+<div id="listsControls">
+<input id="listNewItem" type="text" placeholder="Нове значення">
+<button id="listAddBtn" type="button">Додати</button>
+</div>
+
+<div class="status" id="settingsStatus"></div>
+
+</div>
+</div>
+</div>
+
+<!-- Screen 4 (MAP) -->
+<div class="screen screenHidden" id="screen-map">
+
+<div class="card map-screen-card">
+
+<div class="map-screen-top">
+<button
+  type="button"
+  class="map-fullscreen-toggle"
+  id="mapToggleFullscreen"
+  aria-expanded="false"
+  title="Розгорнути мапу"
+  aria-label="Розгорнути мапу на весь екран"
+>
+  <svg class="map-fs-ico map-fs-ico-expand" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+  </svg>
+  <svg class="map-fs-ico map-fs-ico-collapse" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+  </svg>
+</button>
+</div>
+
+<div id="mapStatus" class="status">
+Мапа ще не ініціалізована
+</div>
+
+<div id="map" class="map-leaflet-host"></div>
+
+</div>
+</div>
+
+<!-- Screen 5 -->
+<div class="screen screenHidden" id="screen-help">
+
+<div class="card help-card">
+
+<section class="help-section" aria-labelledby="help-h-1">
+<h2 class="help-section-title" id="help-h-1"><span class="help-section-num">1</span><span class="help-section-heading-text">Про застосунок</span></h2>
+
+<p><strong>Звіт БПЛА</strong> — це односторінковий веб-додаток для швидкого складання <em>структурованих</em> звітів про вилоти БПЛА прямо в браузері. Кожен звіт — окремий запис із полями форми, версією та (за потреби) статусом синхронізації з Google Таблицями. Роботу розраховано на польові умови: телефон або планшет, стійка робота без стабільного інтернету після першого завантаження.</p>
+
+<p><strong>Звіти</strong> зберігаються в <strong>IndexedDB</strong> (база <code>report_uav_db_v2</code>) — це основне локальне сховище журналу, черги відправки та налаштувань інтеграції. <strong>Лічильник екіпажу</strong> та <strong>перевизначення списків</strong> форми лишаються в <code>localStorage</code> цього браузера. Дані за замовчуванням <strong>не надсилаються</strong> на сервер розробника. Відправка в таблицю — лише на ваш URL Google Apps Script; налаштування в меню <strong>«Дані та інтеграція»</strong> (див. розділ 4). Перенести архів між пристроями: зашифрований експорт/імпорт на тому ж екрані. Зашифровані копії зі старого застосунку (v1) також підтримуються поряд з v2.</p>
+</section>
+
+<section class="help-section" aria-labelledby="help-h-2">
+<h2 class="help-section-title" id="help-h-2"><span class="help-section-num">2</span><span class="help-section-heading-text">Форма звіту (головний екран)</span></h2>
+
+<p>На цьому екрані з полів форми збирається повний текст звіту в єдиному форматі (кілька перших рядків — без міток, далі — рядки з назвами полів через двокрапку).</p>
+
+<p class="help-kicker"><em>Поля та їх зміст:</em></p>
+<p class="help-bullets">
+• <strong>Екіпаж</strong> — позивний (текстовий рядок) і при потребі <strong>лічильник вильотів</strong> (число 1–25 у дужках біля позивного). Лічильник зберігається між сесіями; після успішного «Готово» він може автоматично збільшитися на 1 (до верхньої межі).<br>
+• <strong>Дата</strong> — календарна дата місії. Відображається у формі з урахуванням <em>локального</em> часу пристрою (не UTC). Поле періодично узгоджується з «сьогодні» при відкритті додатку, поверненні на цей екран, поверненні вкладки у фокус і безпосередньо перед формуванням звіту, щойно настав новий календарний день або поле було порожнє; після «Готово» дата готується для наступного запису (поточний день). Якщо в межах однієї доби ви вручну вибрали іншу дату, вона не перезаписується автоматично.<br>
+• <strong>Борт</strong> — вибір зі списку дронів; утримування перед вводом увімкнює довільний текст.<br>
+• <strong>Характер</strong> — тип місії зі списку або довільний ввід (утримати перед вводом).<br>
+• <strong>Час зльоту</strong> — вручну або кнопка «Зараз» (формат ГГ:ХХ).<br>
+• <strong>Час ураження/втрати</strong> — так само, з кнопкою «Зараз»; саме цей час разом з датою використовується в журналі, статистиці та на карті для прив’язки до періоду фільтра.<br>
+• <strong>Координати</strong> — формат MGRS: префікс із списку + два блоки по 5 цифр (easting) та (northing).<br>
+• <strong>Боєприпас</strong> — зі списку або довільний ввід.<br>
+• <strong>Стрім</strong> — посилання на потік або плейсхолдер «---».<br>
+• <strong>Результат</strong> — зі списку або довільний текст; для зручності статистики рекомендовано формат <strong>тип результату</strong>, при потребі пробіл і <strong>деталі в круглих дужках</strong>. Для KPI і групування в журналі використовується лише частина <em>до першої дужки</em> (ключ); текст у дужках лише уточнює звіт і не змінює категорію. Наприклад: <code>Ураження (знищення антени)</code>.
+</p>
+
+<p class="help-callout help-callout--action"><strong>Кнопка «Готово»</strong> збирає поля форми, перевіряє їх, створює новий звіт у локальній базі (унікальний id, версія 1, текст будується з полів), показує текст у полі внизу, копіює його в буфер і оновлює дату форми й лічильник екіпажу. Залежно від режиму відправки в налаштуваннях звіт може лишитися чернеткою, одразу піти в чергу на відправку або отримати відкладену відправку.</p>
+</section>
+
+<section class="help-section" aria-labelledby="help-h-3">
+<h2 class="help-section-title" id="help-h-3"><span class="help-section-num">3</span><span class="help-section-heading-text">Журнал, KPI та робота з історією</span></h2>
+
+<p>Екран <strong>«Журнал та статистика»</strong> читає звіти з <strong>IndexedDB</strong>; є верхня межа кількості записів на пристрої. Один і той самий період і пошук застосовуються до зведення, списку карток і карти.</p>
+
+<p class="help-kicker"><em>Фільтр періоду</em></p>
+<p>Дата «від / до» і час «від / до» будуються зі структурованих полів звіту: <strong>дата місії</strong> та <strong>час ураження/втрати</strong> (не з «ручного» парсингу довільного тексту). За замовчуванням зазвичай обрано поточний місяць. Кнопка «Показати» фіксує умови; лічильник «Відібрано звітів: N із M» показує, скільки записів потрапило під фільтр порівняно з усім архівом.</p>
+
+<p class="help-kicker"><em>KPI (плитки зверху):</em></p>
+<p class="help-bullets">
+• <strong>Вильотів</strong> — кількість звітів, що пройшли фільтр періоду й пошуку.<br>
+• <strong>Уражень</strong> — серед них кількість із нормалізованою категорією результату «Ураження» за ключем до дужок.<br>
+• <strong>Втрат</strong> — кількість із категорією «Втрата борта».<br>
+• <strong>Ефективність</strong> — відношення уражень до загальної кількості відфільтрованих вильотів у відсотках.
+</p>
+
+<p class="help-subblock"><strong class="help-subblock-label">Вкладка «Статистика».</strong> Текстове зведення з розбивкою за бортами, боєприпасами, типами місій і групами нормалізованих результатів. Повторювані формулювання (на кшталт варіантів «ураження…») зводяться до однієї категорії там, де це передбачено мапінгом. Текст зведення можна скопіювати кнопкою «Копіювати зведення».</p>
+
+<p class="help-subblock"><strong class="help-subblock-label">Вкладка «Журнал».</strong> Картка показує текст звіту, збоку — крапка-індикатор <strong>статусу синхронізації</strong> (наведіть для підказки). Внизу ряд іконок: <strong>копіювати</strong>, за підтримки браузера — <strong>поділитися</strong>, далі дії залежно від статусу — <strong>відправити</strong> в Google Таблицю, <strong>редагувати</strong>, відкладена відправка, скасування черги, <strong>виправити</strong> для вже надісланих (після збереження — «надіслати зміни»), повтор після помилки тощо. Текст звіту завжди відповідає полям; повне редагування через діалог.</p>
+
+<p class="help-kicker"><em>Масова відправка в таблицю:</em></p>
+<p class="help-bullets">
+• Кнопка <strong>«Відправити список у таблицю»</strong> ставить у чергу <strong>усі звіти з поточного відфільтрованого списку</strong> (період + пошук + «Показати»), окрім тих, що в статусі <strong>відкладена відправка (scheduled)</strong>. Це стосується й уже <strong>надісланих</strong> (sent): ух таблиці знову записуються за тим самим <strong>report_id</strong> — зручно, якщо ви очистили лист у Google, а в додатку статус лишився «надіслано».<br>
+• Потрібні збережений URL Apps Script і мережа; режим «вручну» на нові звіти не заважає цій кнопці.
+</p>
+
+<p class="help-kicker"><em>Видалення записів із історії:</em></p>
+<p class="help-bullets">
+• <strong>«Видалити звіти зі списку»</strong> (у журналі) — назавжди прибирає лише ті записи, які <em>зараз видимі</em> у списку з урахуванням періоду і пошуку.<br>
+• <strong>«Видалити всі звіти»</strong> — на екрані <strong>«Дані та інтеграція»</strong>, блок «Очистити архів»; повністю очищає локальний журнал на цьому пристрої. Спочатку зробіть експорт за потреби.<br>
+• На <strong>карті</strong> в картці звіту — кнопка з іконкою кошика видаляє один запис після підтвердження.
+</p>
+
+<p class="help-muted-block">Кожен звіт з моменту створення має стабільний <strong>id</strong>; при збереженні змін зростає <strong>версія</strong>. Якщо немає мережі або відправка не вдалася, звіт може потрапити в <strong>чергу</strong> з повторними спробами пізніше.</p>
+</section>
+
+<section class="help-section help-section--crypto" aria-labelledby="help-h-4">
+<h2 class="help-section-title" id="help-h-4"><span class="help-section-num">4</span><span class="help-section-heading-text">Дані, інтеграція, експорт і шифрування</span></h2>
+
+<p>Меню → <strong>«Дані та інтеграція»</strong>. Тут: (1) посилання на Google Таблицю та URL веб-додатку <strong>Apps Script</strong>, режим відправки, затримка, автоблокування — збереження й «Перевірити з’єднання»; (2) зашифрований <strong>експорт / імпорт</strong> файлу; (3) небезпечна дія <strong>«Видалити всі звіти»</strong> з локального архіву. Перенесення історії між пристроями або резервна копія <em>без</em> відкритого зберігання в мережі — через цей зашифрований файл.</p>
+
+<p class="help-kicker"><em>Експорт — кроки</em></p>
+<p class="help-steps">
+1) натисніть «Експорт»;<br>
+2) введіть <strong>парольну фразу</strong> (ключ) і повторіть її — обидва введення мають збігатися;<br>
+3) браузер збереже файл <code>uav_reports_v2.enc.json</code> — це JSON обгортка навколо зашифрованого вмісту (формат звітів v2);<br>
+4) зберігайте файл і пароль <strong>окремо</strong>; без пароля дані з файлу не відновити.
+</p>
+
+<p class="help-kicker"><em>Імпорт — кроки</em></p>
+<p class="help-steps">
+1) «Імпорт» → оберіть відповідний <code>.json</code> файл;<br>
+2) введіть той самий ключ;<br>
+3) додаток перевіряє структуру та цілісність пакета (підтримуються архіви <strong>v2</strong> і зашифрований експорт <strong>v1</strong> зі старого застосунку);<br>
+4) звіти з файлу <strong>зливаються</strong> із поточним журналом за <strong>id</strong>: якщо id збігається, для того ж id переважають дані з файлу;<br>
+5) інтерфейс журналу та карти оновлюється автоматично. Імпортовані записи зазвичай у статусі чернетки — їх можна надіслати в таблицю з картки або кнопкою масової відправки у журналі.
+</p>
+
+<p class="help-kicker"><em>Технічні деталі шифрування (Web Crypto у браузері)</em></p>
+<p class="help-bullets help-bullets--dense">
+• <strong>KDF:</strong> PBKDF2 з хешем <strong>SHA-256</strong>, <strong>250&nbsp;000 ітерацій</strong>. З введеної парольної фрази та випадкової <strong>солі</strong> (16 байт) виводиться криптографічний ключ довжиною <strong>256 біт</strong>. Кількість ітерацій навмисно велика, щоб ускладнити підбір пароля перебором на чужому комп’ютері.<br>
+• <strong>Шифр:</strong> <strong>AES-256-GCM</strong>. Режим GCM забезпечує й <em>конфіденційність</em>, і <em>автентичність</em>: при розшифруванні з неправильним ключем або пошкодженому файлі операція зірветься (виявлення підміни або помилки). Для кожного експорту генерується випадковий <strong>IV</strong> (nonce, 12 байт) і зберігається поруч із ciphertext у JSON.<br>
+• <strong>Вміст файлу:</strong> у відкритому вигляді внутрі файлу зберігаються лише службові поля (версія схеми, назва алгоритму, параметри KDF у Base64, salt, iv, ciphertext у Base64). Самі тексти звітів у відкритому вигляді у файл не потрапляють.<br>
+• <strong>Пароль</strong> ніде не записується: він існує лише у пам’яті під час операції і зникає після закриття діалогу; це також означає, що «відновити забутий пароль» неможливо — лише змінити практику зберігання копій ключа.<br>
+• Обчислення повністю <strong>локальні</strong>, без відправлення ключа чи даних на сервер — мережа потрібна лише якщо ви самі пересилаєте файл іншим каналом.
+</p>
+
+<p class="help-callout help-callout--security">Файл експорту без пароля <strong>не розшифрувати</strong>. Пароль ніде в застосунку не зберігається.</p>
+</section>
+
+<section class="help-section" aria-labelledby="help-h-5">
+<h2 class="help-section-title" id="help-h-5"><span class="help-section-num">5</span><span class="help-section-heading-text">Карта місій</span></h2>
+
+<p>Координати беруться зі структурованого поля звіту (MGRS), а не з «розбору» довільного тексту. Показуються лише звіти, що пройшли той самий фільтр періоду, що й журнал. Рушій маркерів — Leaflet. У <strong>нижньому правому куті</strong> карти — перемикач <strong>базової підкладки</strong>: схема OSM, супутник (Esri), рельєф і висоти (OpenTopoMap). Вибір зберігається в цьому браузері для наступних відвідувань.</p>
+
+<p class="help-kicker"><em>Маркери за кількістю місій у точці</em></p>
+<p class="help-bullets">
+• одна місія — окрема ціанова крапка;<br>
+• 2–3 — зелений круг із числом;<br>
+• 4–5 — лаймовий круг із числом;<br>
+• 6 і більше — великий янтарно-помаранчевий маркер з числом.
+</p>
+
+<p class="help-subblock"><strong class="help-subblock-label">Перегляд на карті.</strong> Клік по одиночному маркеру відкриває картку з повним текстом, діями «Копіювати», «Поділитися» та малою кнопкою видалення з іконкою кошика. Клік по груповому маркеру відкриває список місій у точці (новіші зверху); зі списку можна перейти до картки звіту. «Назад» повертає до списку, «✕» закриває оверлей.</p>
+
+<p>У правому верхньому куті зони карти — кнопка <strong>розгортання на весь екран</strong> вікна застосунку (під заголовок «Звіт по БПЛА»); у розгорнутому режимі та ж кнопка <strong>згортає</strong> назад. Перехід на інший екран з меню також збирає карту з повноекранного режиму. Завантаження тайлів потребує мережі; офлайн доступні лише вже переглянуті фрагменти карти.</p>
+</section>
+
+<section class="help-section" aria-labelledby="help-h-6">
+<h2 class="help-section-title" id="help-h-6"><span class="help-section-num">6</span><span class="help-section-heading-text">Налаштування списків</span></h2>
+
+<p>Окремий екран для редагування значень, які підставляються у випадаючі списки форми:</p>
+<p class="help-bullets help-bullets--compact">
+• дрони (Борт);<br>
+• типи місій (Характер);<br>
+• боєприпаси;<br>
+• результати місії;<br>
+• префікси MGRS;<br>
+• стріми.
+</p>
+<p>Елементи можна додавати, видаляти й переставляти перетягуванням. Збережені на пристрої перевизначення мають пріоритет над початковим файлом <code>config.json</code>; є можливість скинути списки до базових значень.</p>
+
+<p class="help-callout help-callout--tip">Інтеграція з Google Таблицями перенесена на екран <strong>«Дані та інтеграція»</strong> (разом із резервним копіюванням). Екран <strong>«Налаштування списків»</strong> містить лише редактор значень для полів форми.</p>
+</section>
+
+<section class="help-section" aria-labelledby="help-h-7">
+<h2 class="help-section-title" id="help-h-7"><span class="help-section-num">7</span><span class="help-section-heading-text">Навігація</span></h2>
+
+<p class="help-callout help-callout--tip"><strong>Довге натискання</strong> на заголовок «Звіт по БПЛА» відкриває меню екранів: форма, журнал і статистика, <strong>дані та інтеграція</strong>, карта, налаштування списків, ця довідка. Поточний екран підсвічено; «Закрити» ховає меню.</p>
+</section>
+
+<section class="help-section" aria-labelledby="help-h-8">
+<h2 class="help-section-title" id="help-h-8"><span class="help-section-num">8</span><span class="help-section-heading-text">PWA на смартфоні</span></h2>
+
+<p class="help-subblock"><strong class="help-subblock-label">Навіщо.</strong> Швидкий запуск з іконки на початковому екрані; стійкіша робота офлайн після першого завантаження; менший ризик «загубити» вкладку серед сайтів.</p>
+
+<p class="help-subblock"><strong class="help-subblock-label">Android (Chrome).</strong> Меню (⋮) → «Встановити застосунок» або «Додати на головний екран» → підтвердіть.</p>
+
+<p class="help-subblock"><strong class="help-subblock-label">iPhone / iPad (Safari).</strong> «Поділитися» → «На екран “Додому”» → підтвердіть.</p>
+
+<p class="help-callout help-callout--warn"><strong>Важливо:</strong> перший візит бажано з інтернетом, щоб сервіс-воркер і файли закешувались; для <strong>index.html</strong> і <strong>js/app.js</strong> застосунок намагається спочатку взяти свіжу копію з мережі, щоб після оновлення не зависати на битій сторінці в кеші. Якщо після оновлення щось «ламається» — закрийте вкладку, очистіть кеш сайту або перевстановіть PWA.</p>
+</section>
+
+<section class="help-section" aria-labelledby="help-h-9">
+<h2 class="help-section-title" id="help-h-9"><span class="help-section-num">9</span><span class="help-section-heading-text">Конфіденційність</span></h2>
+
+<p>Звіти та черга синхронізації зберігаються в <strong>IndexedDB</strong>; лічильник і списки форми — частково в <code>localStorage</code>. На сервер розробника нічого не надсилається. Якщо увімкнено інтеграцію, звіти можуть відправлятися лише на <strong>ваш</strong> URL Apps Script. Резервна копія — зашифрований файл і пароль (розділ 4).</p>
+</section>
+
+<section class="help-section help-section--contacts" aria-labelledby="help-h-10">
+<h2 class="help-section-title" id="help-h-10"><span class="help-section-num">10</span><span class="help-section-heading-text">Контакти</span></h2>
+
+<ul class="help-contact-list">
+<li>
+<a class="help-contact-card" href="https://t.me/irreligious_86" target="_blank" rel="noopener">
+<span class="help-contact-icon" aria-hidden="true">TG</span>
+<span class="help-contact-body">
+<span class="help-contact-label">Telegram</span>
+<span class="help-contact-value">t.me/irreligious_86</span>
+</span>
+</a>
+</li>
+<li>
+<a class="help-contact-card" href="mailto:irreligious86@gmail.com">
+<span class="help-contact-icon" aria-hidden="true">@</span>
+<span class="help-contact-body">
+<span class="help-contact-label">Email</span>
+<span class="help-contact-value">irreligious86@gmail.com</span>
+</span>
+</a>
+</li>
+<li>
+<a class="help-contact-card" href="https://github.com/irreligious86/Report-UAV" target="_blank" rel="noopener">
+<span class="help-contact-icon" aria-hidden="true">GH</span>
+<span class="help-contact-body">
+<span class="help-contact-label">GitHub</span>
+<span class="help-contact-value">github.com/irreligious86/Report-UAV</span>
+</span>
+</a>
+</li>
+</ul>
+</section>
+
+</div>
+</div>
+
+<!-- Navigation menu -->
+<div class="screen-menu" id="screenMenu" aria-hidden="true">
+
+<div class="screen-menu-backdrop" id="screenMenuBackdrop"></div>
+
+<div class="screen-menu-panel">
+
+<div class="screen-menu-title">Меню екранів</div>
+
+<button
+class="screen-menu-item"
+type="button"
+data-screen="main"
+>
+Форма звіту
+</button>
+
+<button
+class="screen-menu-item"
+type="button"
+data-screen="journal"
+>
+Журнал та статистика
+</button>
+
+<button
+class="screen-menu-item"
+type="button"
+data-screen="data"
+>
+Дані та інтеграція
+</button>
+
+<button
+class="screen-menu-item"
+type="button"
+data-screen="map"
+>
+Карта
+</button>
+
+<button
+class="screen-menu-item"
+type="button"
+data-screen="settings"
+>
+Налаштування списків
+</button>
+
+<button
+class="screen-menu-item"
+type="button"
+data-screen="help"
+>
+Довідка та контакти
+</button>
+
+<button
+class="screen-menu-close"
+type="button"
+data-screen-menu-close
+>
+Закрити
+</button>
+
+</div>
+</div>
+
+<!-- Map overlays: mission group list and single report viewer -->
+<div class="map-overlay screenHidden" id="mapGroupOverlay" aria-hidden="true">
+  <div class="map-overlay-backdrop" data-map-overlay-close="group"></div>
+  <div class="map-overlay-panel">
+    <div class="map-overlay-header">
+      <div class="map-overlay-title" id="mapGroupTitle">Місії у точці</div>
+      <button class="map-overlay-close" type="button" id="mapGroupCloseBtn">✕</button>
+    </div>
+
+    <div class="map-overlay-subtitle" id="mapGroupSubtitle"></div>
+
+    <div class="map-mission-list" id="mapMissionList"></div>
+  </div>
+</div>
+
+<div class="map-overlay screenHidden" id="mapReportOverlay" aria-hidden="true">
+  <div class="map-overlay-backdrop" data-map-overlay-close="report"></div>
+  <div class="map-overlay-panel map-report-panel">
+    <div class="map-overlay-header">
+      <button class="map-overlay-back" type="button" id="mapReportBackBtn">← Назад</button>
+      <button class="map-overlay-close" type="button" id="mapReportCloseBtn">✕</button>
+    </div>
+
+    <div class="map-overlay-title map-report-title" id="mapReportTitle">Звіт місії</div>
+    <div class="map-overlay-subtitle map-report-subtitle" id="mapReportSubtitle"></div>
+
+    <div class="map-report-actions">
+      <div class="map-report-actions-primary">
+        <button class="btn" type="button" id="mapReportCopyBtn">Копіювати</button>
+        <button class="btn" type="button" id="mapReportShareBtn">Поділитися</button>
+      </div>
+      <button
+        class="map-report-delete-icon"
+        type="button"
+        id="mapReportDeleteBtn"
+        title="Видалити звіт з архіву"
+        aria-label="Видалити звіт з архіву"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 6h18"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          <path d="M10 11v7M14 11v7"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="map-report-content-wrap">
+      <div class="map-report-content" id="mapReportContent"></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script type="module" src="js/app.js"></script>
+
+</body>
+</html>
