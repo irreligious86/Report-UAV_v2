@@ -1,7 +1,7 @@
 /**
  * Service Worker: offline caching for Report UAV PWA.
  */
-const CACHE_NAME = 'uav-report-v15';
+const CACHE_NAME = 'uav-report-v20';
 const ASSETS = [
   './',
   './index.html',
@@ -9,6 +9,10 @@ const ASSETS = [
   './manifest.json',
   './config.json',
   './icon.png',
+  './icon-192.png',
+  './icon-512.png',
+  './icon.svg',
+  './apple-touch-icon.png',
   './js/app.js',
   './js/db.js',
   './js/constants.js',
@@ -30,6 +34,7 @@ const ASSETS = [
   './js/generate.js',
   './js/filters.js',
   './js/navigation.js',
+  './js/pwa-install.js',
   './js/result-mapping.js',
   './js/streams.js',
   './js/events.js',

@@ -16,8 +16,14 @@
 
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#050607">
 
   <title>Звіт БПЛА</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
   <link rel="stylesheet" href="styles.css">
 
@@ -32,7 +38,7 @@
 
 <div class="wrap">
 
-<div class="title" id="title">Звіт по БПЛА</div>
+<div class="title" id="title">Звіт по БПЛА <span class="version-badge">v2</span></div>
 
 <!-- Screen 1 -->
 <div class="screen" id="screen-main">
@@ -617,6 +623,15 @@ title="Зберегти зміни"
 <section class="help-section" aria-labelledby="help-h-8">
 <h2 class="help-section-title" id="help-h-8"><span class="help-section-num">8</span><span class="help-section-heading-text">PWA на смартфоні</span></h2>
 
+<button class="pwa-install-btn" id="pwaInstallBtn" type="button" hidden>
+  <svg class="pwa-install-btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 5v14"/>
+    <path d="M19 12l-7 7-7-7"/>
+  </svg>
+  Встановити застосунок
+</button>
+
 <p class="help-subblock"><strong class="help-subblock-label">Навіщо.</strong> Швидкий запуск з іконки на початковому екрані; стійкіша робота офлайн після першого завантаження; менший ризик «загубити» вкладку серед сайтів.</p>
 
 <p class="help-subblock"><strong class="help-subblock-label">Android (Chrome).</strong> Меню (⋮) → «Встановити застосунок» або «Додати на головний екран» → підтвердіть.</p>
@@ -664,6 +679,17 @@ title="Зберегти зміни"
 </a>
 </li>
 </ul>
+</section>
+
+<section class="help-section help-section--v1-link" aria-label="Попередня версія">
+<div class="v1-link-block">
+  <span class="v1-link-label">Попередня версія</span>
+  <a class="v1-link-card" href="https://irreligious86.github.io/Report-UAV/" target="_blank" rel="noopener">
+    <span class="v1-link-icon" aria-hidden="true">v1</span>
+    <span class="v1-link-text">Звіт БПЛА — версія 1.0</span>
+    <svg class="v1-link-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
+  </a>
+</div>
 </section>
 
 </div>

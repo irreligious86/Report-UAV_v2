@@ -11,6 +11,7 @@ import { initDataScreen } from "./screens/data.js";
 import { initSettingsScreen } from "./screens/settings.js";
 import { initMapScreen } from "./screens/map.js";
 import { initNavigation } from "./navigation.js";
+import { initPwaInstall } from "./pwa-install.js";
 
 /**
  * @returns {Promise<void>}
@@ -24,6 +25,7 @@ async function initApp() {
   await initSettingsScreen();
   initMapScreen();
   initNavigation();
+  initPwaInstall();
 }
 
 initApp();

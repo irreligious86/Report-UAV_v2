@@ -144,9 +144,10 @@ export function navigateTo(screenId) {
 
   const titleEl = $("title");
   if (titleEl) {
+    const v2Badge = ' <span class="version-badge">v2</span>';
     switch (currentScreenId) {
       case "main":
-        titleEl.textContent = "Звіт по БПЛА";
+        titleEl.innerHTML = "Звіт по БПЛА" + v2Badge;
         break;
       case "journal":
         titleEl.textContent = "Журнал та статистика";
@@ -164,7 +165,7 @@ export function navigateTo(screenId) {
         titleEl.textContent = "Довідка та контакти";
         break;
       default:
-        titleEl.textContent = "Звіт по БПЛА";
+        titleEl.innerHTML = "Звіт по БПЛА" + v2Badge;
         break;
     }
   }
