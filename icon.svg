@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#0a1214"/>
+      <stop offset="100%" stop-color="#050607"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="rgba(0,255,102,0.12)"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </radialGradient>
+    <linearGradient id="droneBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#55f3ff"/>
+      <stop offset="100%" stop-color="#00ff66"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#00ff66" flood-opacity="0.3"/>
+    </filter>
+    <filter id="textShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.7"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="96" fill="url(#glow)"/>
+
+  <!-- Subtle border -->
+  <rect x="2" y="2" width="508" height="508" rx="94"
+        fill="none" stroke="rgba(85,243,255,0.15)" stroke-width="2"/>
+
+  <!-- Drone silhouette (stylized quad) -->
+  <g filter="url(#shadow)" transform="translate(256,200)">
+    <!-- Arms -->
+    <line x1="-80" y1="-50" x2="-30" y2="-10" stroke="url(#droneBody)" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
+    <line x1="80" y1="-50" x2="30" y2="-10" stroke="url(#droneBody)" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
+    <line x1="-80" y1="30" x2="-30" y2="10" stroke="url(#droneBody)" stroke-width="5" stroke-linecap="round" opacity="0.6"/>
+    <line x1="80" y1="30" x2="30" y2="10" stroke="url(#droneBody)" stroke-width="5" stroke-linecap="round" opacity="0.6"/>
+
+    <!-- Rotors -->
+    <ellipse cx="-80" cy="-50" rx="32" ry="8" fill="none" stroke="#55f3ff" stroke-width="2" opacity="0.5"/>
+    <ellipse cx="80" cy="-50" rx="32" ry="8" fill="none" stroke="#55f3ff" stroke-width="2" opacity="0.5"/>
+    <ellipse cx="-80" cy="30" rx="32" ry="8" fill="none" stroke="#55f3ff" stroke-width="2" opacity="0.35"/>
+    <ellipse cx="80" cy="30" rx="32" ry="8" fill="none" stroke="#55f3ff" stroke-width="2" opacity="0.35"/>
+
+    <!-- Body -->
+    <rect x="-30" y="-16" width="60" height="32" rx="10" fill="url(#droneBody)" opacity="0.9"/>
+
+    <!-- Camera dot -->
+    <circle cx="0" cy="12" r="5" fill="#050607" stroke="#55f3ff" stroke-width="1.5" opacity="0.8"/>
+  </g>
+
+  <!-- Text: ЗВІТ -->
+  <text x="256" y="340" text-anchor="middle"
+        font-family="system-ui, -apple-system, sans-serif"
+        font-size="62" font-weight="900" letter-spacing="8"
+        fill="#55f3ff" filter="url(#textShadow)"
+        opacity="0.9">ЗВІТ</text>
+
+  <!-- Text: БПЛА -->
+  <text x="256" y="395" text-anchor="middle"
+        font-family="system-ui, -apple-system, sans-serif"
+        font-size="44" font-weight="700" letter-spacing="12"
+        fill="#00ff66" filter="url(#textShadow)"
+        opacity="0.7">БПЛА</text>
+
+  <!-- v2 badge -->
+  <text x="395" y="330" text-anchor="start"
+        font-family="system-ui, -apple-system, sans-serif"
+        font-size="28" font-weight="800" letter-spacing="1"
+        fill="rgba(140,165,155,0.45)"
+        transform="rotate(-8,395,330)">v2</text>
+</svg>

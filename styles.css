@@ -2572,4 +2572,179 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .help-dot--error    { background: #ff4d6d; }
 .help-dot--resync   { background: #ffb448; }
 
-.help-c
+/* ========================================================= */
+/* Version badge (v2) у заголовку                            */
+/* ========================================================= */
+
+.version-badge {
+  display: inline-block;
+  font-size: 1.35em;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 5px;
+  vertical-align: baseline;
+  transform: rotate(-8deg);
+  position: relative;
+  top: -4px;
+
+  /* левая часть чёткая, правая растворяется */
+  background: linear-gradient(
+    to right,
+    rgba(140, 165, 155, 0.7) 0%,
+    rgba(140, 165, 155, 0.45) 40%,
+    rgba(140, 165, 155, 0.18) 75%,
+    rgba(140, 165, 155, 0.04) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+
+  /* тень — парит над полотном, резкая слева, мягкая справа */
+  filter:
+    drop-shadow(-1px 2px 1px rgba(0, 0, 0, 0.8))
+    drop-shadow(0px 5px 10px rgba(0, 0, 0, 0.5))
+    drop-shadow(0px 0px 14px rgba(0, 255, 102, 0.06));
+}
+
+/* ========================================================= */
+/* Блок посилання на v1                                      */
+/* ========================================================= */
+
+.help-section--v1-link {
+  margin-top: 28px;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  border: none;
+}
+
+.v1-link-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.v1-link-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.v1-link-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(85, 243, 255, 0.15);
+  background:
+    linear-gradient(145deg, rgba(85, 243, 255, 0.05), transparent 60%),
+    rgba(10, 15, 16, 0.65);
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.88rem;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+
+.v1-link-card:hover,
+.v1-link-card:focus-visible {
+  border-color: rgba(85, 243, 255, 0.4);
+  background: rgba(85, 243, 255, 0.08);
+  color: var(--label);
+  outline: none;
+}
+
+.v1-link-card:active {
+  transform: scale(0.98);
+}
+
+.v1-link-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  background: rgba(85, 243, 255, 0.08);
+  border: 1px solid rgba(85, 243, 255, 0.2);
+  color: var(--label);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.v1-link-text {
+  flex: 1;
+}
+
+.v1-link-arrow {
+  flex-shrink: 0;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.v1-link-card:hover .v1-link-arrow {
+  opacity: 1;
+}
+
+/* ========================================================= */
+/* PWA install button                                        */
+/* ========================================================= */
+
+.pwa-install-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0 0 18px;
+  padding: 14px 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 255, 102, 0.25);
+  background:
+    linear-gradient(145deg, rgba(0, 255, 102, 0.1), rgba(85, 243, 255, 0.04) 60%),
+    rgba(10, 15, 16, 0.85);
+  color: var(--value);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 1px rgba(0, 255, 102, 0.08),
+    0 8px 24px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.pwa-install-btn:hover,
+.pwa-install-btn:focus-visible {
+  border-color: rgba(0, 255, 102, 0.5);
+  background:
+    linear-gradient(145deg, rgba(0, 255, 102, 0.16), rgba(85, 243, 255, 0.06) 60%),
+    rgba(10, 15, 16, 0.9);
+  box-shadow:
+    0 0 0 1px rgba(0, 255, 102, 0.15),
+    0 0 20px rgba(0, 255, 102, 0.12),
+    0 8px 24px rgba(0, 0, 0, 0.5);
+  outline: none;
+}
+
+.pwa-install-btn:active {
+  transform: scale(0.98);
+}
+
+.pwa-install-btn[hidden] {
+  display: none;
+}
+
+.pwa-install-btn-icon {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
