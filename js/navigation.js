@@ -180,6 +180,6 @@ export function navigateTo(screenId) {
 
   // Close the menu overlay when navigating.
   if (menuElement) {
-    menuElement.classList.remove("is-visible");
+    menuElement.classList.remove("is-open");
   }
 }

@@ -1,7 +1,13 @@
 /**
- * Service Worker: offline caching for Report UAV PWA.
+ * Service Worker — offline asset cache for Report UAV PWA.
+ *
+ * EN: `ASSETS` must include every first-party `.js` URL loaded by the app (static
+ *     graph). If a module is missing, offline navigation can fail after install.
+ *     Bump `CACHE_NAME` whenever this list changes.
+ * UA: У `ASSETS` мають бути всі власні `.js`, які імпортує застосунок. Якщо
+ *     модуль відсутній — офлайн може зламатися. Підвищуйте `CACHE_NAME` при змінах.
  */
-const CACHE_NAME = 'uav-report-v20';
+const CACHE_NAME = 'uav-report-v22';
 const ASSETS = [
   './',
   './index.html',
@@ -33,6 +39,10 @@ const ASSETS = [
   './js/longPressEdit.js',
   './js/generate.js',
   './js/filters.js',
+  './js/date-utils.js',
+  './js/idb-helpers.js',
+  './js/logger.js',
+  './js/sync-queue-processor.js',
   './js/navigation.js',
   './js/pwa-install.js',
   './js/result-mapping.js',
@@ -45,6 +55,7 @@ const ASSETS = [
   './js/screens/data.js',
   './js/screens/settings.js',
   './js/screens/map.js',
+  './js/screens/help.js',
   './js/crypto/legacy-import.js',
 ];
 

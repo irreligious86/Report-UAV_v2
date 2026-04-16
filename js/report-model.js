@@ -1,12 +1,24 @@
 /**
- * Domain model: Report entity, ids, status transitions.
- * Text is always derived from fields via report-format.buildReportText.
+ * EN: Domain model — Report entity, ids, status transitions. The textual form
+ *     is always derived from the structured fields via
+ *     `report-format.buildReportText`, so there is only one source of truth.
+ *
+ *     Import field-level helpers (`emptyFields`, `normalizeFields`,
+ *     `buildReportText`) directly from `./report-format.js` — this module no
+ *     longer re-exports them.
+ *
+ * UA: Доменна модель — сутність Report, ідентифікатори, переходи статусів.
+ *     Текстовий вигляд завжди будується зі структурних полів через
+ *     `report-format.buildReportText`, тому джерело правди одне.
+ *
+ *     Хелпери роботи з полями (`emptyFields`, `normalizeFields`,
+ *     `buildReportText`) імпортуйте напряму з `./report-format.js` — цей
+ *     модуль більше їх не ре-експортує.
+ *
  * @module report-model
  */
 
-import { buildReportText, normalizeFields, emptyFields } from "./report-format.js";
-
-export { emptyFields, normalizeFields, buildReportText };
+import { buildReportText, normalizeFields } from "./report-format.js";
 
 /** @readonly */
 export const SYNC_STATUS = Object.freeze({

@@ -1,13 +1,17 @@
 /**
- * Result mapping helpers: convert raw user-entered result text
- * into normalized categories for statistics.
- * Конвенція: «ключ (деталі)» — KPI та категорія визначаються лише за ключем (текст до дужок).
+ * Result mapping: raw “Результат” text → normalized category for KPI / journal.
+ *
+ * EN: Convention `key (details)` — only the key (text before `(`) drives categories.
+ *     `RESULT_CATEGORIES` values are stable identifiers for stored reports.
+ * UA: Конвенція «ключ (деталі)» — для KPI береться лише ключ (до дужки).
+ *     Значення `RESULT_CATEGORIES` не змінювати без міграції сумісності.
+ *
  * @module result-mapping
  */
 
 /**
- * Normalized result categories used by statistics.
- * These values should stay stable so old reports remain compatible.
+ * EN: Category labels exposed for stats/UI; keep stable for compatibility.
+ * UA: Підписи категорій для статистики/UI; стабільність важлива для старих звітів.
  */
 export const RESULT_CATEGORIES = Object.freeze({
   HIT: "Ураження",

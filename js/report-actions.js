@@ -1,6 +1,20 @@
 /**
- * High-level report operations (facade for UI). Replaces legacy history.js.
- * Legacy import/export format is handled separately; no migration inside the app.
+ * High-level report operations (facade for screens and `generate.js`).
+ *
+ * EN:
+ *   Single entry point for “business” actions: create/update/delete reports,
+ *   enqueue Google Sheets sync, schedule sends. UI modules should prefer these
+ *   functions over calling `reports-store` + `sync-queue-store` directly so
+ *   rules (status transitions, `emitReportsChanged`) stay in one place.
+ *   Legacy v1 import lives in `crypto/legacy-import.js`, not here.
+ *
+ * UA:
+ *   Єдина точка для дій зі звітами: створення/оновлення/видалення, черга
+ *   відправки в Google Sheets, відкладена відправка. Екрани краще викликають
+ *   ці функції, ніж напряму `reports-store` / `sync-queue-store`, щоб правила
+ *   переходів статусів і події оновлення UI лишались централізованими.
+ *   Імпорт старого формату v1 — у `crypto/legacy-import.js`.
+ *
  * @module report-actions
  */
 
@@ -22,7 +36,9 @@ import {
 
 import { emitReportsChanged } from "./events.js";
 
-export { SYNC_STATUS, emitReportsChanged };
+/** Re-export for UI that needs status constants without importing `report-model`. */
+/** Реекспорт для UI, щоб не тягнути `report-model` лише за константами статусів. */
+export { SYNC_STATUS };
 
 /** @returns {Promise<import("./report-model.js").Report[]>} */
 export async function listReports() {
