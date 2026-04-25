@@ -372,4 +372,25 @@ MVP: генерація та локальне збереження; дії з в
 | Імпорт/експорт | `js/crypto/importExport.js` (v2) |
 | Legacy-міграція в застосунку | **Немає** (за ТЗ — окремий конвертер) |
 
-Документ лишається **ТЗ** для правил синхронізації та UX; деталі файлів — у [google-sheets-sync-decomposition.md](./google-sheets-sync-decomposition.md).
+Документ лишається **ТЗ** для правил синхронізації та UX.
+
+---
+
+## Додаток B. Джерело правди (модулі sync-підсистеми)
+
+| Шар | Файли | Призначення |
+|-----|--------|-------------|
+| База IndexedDB | `js/db.js` | Ім'я БД: **`report_uav_db_v2`**. Stores: **`reports`**, **`sync_queue`**, **`settings`**, **`sync_log`** |
+| Модель звіту | `js/report-model.js` | `Report`: `id`, `createdAt`, `updatedAt`, `publishedAt`, `version`, `syncStatus`, `locked`, `sendAfter`, `sheetRowId`, `fields`, `text` |
+| Текст і поля | `js/report-format.js` | Збір полів з форми, `buildReportText`, нормалізація, час для фільтрів |
+| CRUD звітів | `js/reports-store.js` | Операції з store `reports` |
+| Налаштування синку | `js/sync-settings.js` + `js/settings-store.js` | Інтеграція Google Sheets у IDB |
+| Черга | `js/sync-queue-store.js` | Елементи з `reportId` (не снапшот звіту) |
+| Мережа | `js/google-sheets-api.js` | `fetch` POST на Apps Script (`upsert_report`, `ping`) |
+| Оркестрація | `js/sync-service.js` | Черга, backoff, відкладена відправка, події `reportsChanged` / `reportsUpdated` |
+| Обробка черги | `js/sync-queue-processor.js` | `processOneQueueItem`, `appendSyncLog`, `rotateSyncLog` |
+| Фасад для UI | `js/report-actions.js` | Створення, редагування, відправка, імпорт |
+
+Екрани **не** читають звіти з `localStorage`; лічильник екіпажу та перевизначення списків форми лишаються в **`localStorage`** (`counter.js`, `config.js`).
+
+Legacy-імпорт старих записів `{ ts, text }` **не входить** у цей застосунок — окремий конвертер готує файли у форматі v2 для `importExport.js`.

@@ -1,10 +1,11 @@
 /**
- * Long-press to edit: replace <select> with <input list="..."> after 600ms hold for free-text input.
- * Долгое нажатие для редактирования: замена <select> на <input list="..."> после удержания 600 мс для свободного ввода.
+ * EN: Long-press to edit: replace <select> with <input list="..."> after LONG_PRESS_MS hold for free-text input.
+ * UA: Довге натискання для редагування: заміна <select> на <input list="..."> після утримання LONG_PRESS_MS для вільного вводу.
  * @module longPressEdit
  */
 
 import { $ } from "./utils.js";
+import { LONG_PRESS_MS } from "./constants.js";
 
 // Keep original selects (with their event listeners) while we swap to input mode.
 const originalSelects = new Map();
@@ -95,8 +96,8 @@ export function enterEditMode(selectId, datalistId, maxLen) {
 }
 
 /**
- * Enables long-press (600ms) on a select to switch to edit mode (input + datalist).
- * Включает долгое нажатие (600 мс) по select для перехода в режим редактирования (input + datalist).
+ * EN: Enables long-press (LONG_PRESS_MS) on a select to switch to edit mode (input + datalist).
+ * UA: Вмикає довге натискання (LONG_PRESS_MS) на select для переходу в режим редагування (input + datalist).
  * @param {string} selectId - ID of the select. ID элемента select.
  * @param {string} datalistId - ID of the datalist. ID элемента datalist.
  * @param {number} maxLen - Max length for the replacement input. Максимальная длина для заменяющего input.
@@ -108,7 +109,7 @@ export function enableLongPressToEdit(selectId, datalistId, maxLen) {
 
   let t;
   el.onmousedown = el.ontouchstart = () => {
-    t = setTimeout(() => enterEditMode(selectId, datalistId, maxLen), 600);
+    t = setTimeout(() => enterEditMode(selectId, datalistId, maxLen), LONG_PRESS_MS);
   };
   el.onmouseup = el.onmouseleave = el.ontouchend = () => clearTimeout(t);
 }

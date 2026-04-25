@@ -1,15 +1,23 @@
 /**
- * Low-level IndexedDB access. Single DB for UAV Report v2.
- * Legacy reports are out of scope; use a separate converter app later.
+ * IndexedDB bootstrap: one database per origin for Report UAV v2.
  *
- * DB: report_uav_db_v2 — stores: reports, sync_queue, settings, sync_log
+ * EN:
+ *   Object stores: `reports`, `sync_queue`, `settings`, `sync_log`. All other
+ *   modules obtain a connection through `openDatabase()`; do not open the DB
+ *   ad hoc. Schema migrations: bump `DB_VERSION` and extend `onupgradeneeded`.
+ *
+ * UA:
+ *   Об’єктні сховища: `reports`, `sync_queue`, `settings`, `sync_log`. Інші
+ *   модулі завжди використовують `openDatabase()`; не відкривайте БД напряму.
+ *   Міграції: збільшити `DB_VERSION` і дописати логіку в `onupgradeneeded`.
+ *
  * @module db
  */
 
-/** @type {string} */
+/** EN: Database name (stable for backups and docs). UA: Ім’я БД (стабільне для документації). */
 export const DB_NAME = "report_uav_db_v2";
 
-/** Schema version — bump when stores/indexes change. */
+/** EN: Schema version — increment when stores/indexes change. UA: Версія схеми — підвищувати при зміні сховищ/індексів. */
 export const DB_VERSION = 1;
 
 /** @type {Promise<IDBDatabase>|null} */
@@ -60,6 +68,10 @@ export function openDatabase() {
 }
 
 /**
+ * EN: Close connection and reset the singleton — for unit/integration tests or
+ *     devtools experiments only; not used in production UI.
+ * UA: Закрити з’єднання й скинути singleton — лише для тестів або ручних
+ *     експериментів у консолі; у продакшн-UI не викликається.
  * @returns {Promise<void>}
  */
 export async function closeDatabaseForTests() {

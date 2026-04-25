@@ -477,21 +477,133 @@ title="Зберегти зміни"
 <!-- Screen 5 -->
 <div class="screen screenHidden" id="screen-help">
 
-<div class="card help-card">
+<div class="card help-card" id="helpCard">
 
-<section class="help-section" aria-labelledby="help-h-1">
-<h2 class="help-section-title" id="help-h-1"><span class="help-section-num">1</span><span class="help-section-heading-text">Про застосунок</span></h2>
+<div class="help-reading-progress" aria-hidden="true">
+  <div class="help-reading-progress-bar" id="helpReadingProgressBar"></div>
+</div>
+
+<!-- ────────────────────────────────────────────────────────────── -->
+<!-- Hero: короткий «pitch» + швидкі дії                           -->
+<!-- EN: Hero block with quick actions.  UA: Хіро-блок + швидкі дії. -->
+<!-- ────────────────────────────────────────────────────────────── -->
+<div class="help-hero">
+  <div class="help-hero-tag">Довідка</div>
+  <h1 class="help-hero-title">Як користуватися <span class="help-hero-title-accent">Звіт БПЛА v2</span></h1>
+  <p class="help-hero-lead">
+    Швидкий гід по застосунку — форма звіту, журнал, карта, синхронізація з
+    Google Таблицями та зашифрована резервна копія.
+    Використайте чіпи швидкої навігації або розділи-картки нижче — матеріал згруповано для зручного читання.
+  </p>
+
+  <div class="help-hero-actions">
+    <button class="help-hero-btn" type="button" data-help-all="open">
+      <svg class="help-hero-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+      Розгорнути все
+    </button>
+    <button class="help-hero-btn help-hero-btn--ghost" type="button" data-help-all="close">
+      <svg class="help-hero-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="18 15 12 9 6 15"/>
+      </svg>
+      Згорнути все
+    </button>
+  </div>
+</div>
+
+<!-- ────────────────────────────────────────────────────────────── -->
+<!-- Quick-nav (chips) — клік скролить і відкриває потрібну секцію  -->
+<!-- EN: Quick navigation chips.  UA: Чіпи швидкої навігації.        -->
+<!-- ────────────────────────────────────────────────────────────── -->
+<nav class="help-toc" aria-label="Швидка навігація">
+  <button class="help-chip" type="button" data-help-jump="help-sec-1">1 · Про застосунок</button>
+  <button class="help-chip" type="button" data-help-jump="help-sec-2">2 · Форма звіту</button>
+  <button class="help-chip" type="button" data-help-jump="help-sec-3">3 · Журнал і KPI</button>
+  <button class="help-chip" type="button" data-help-jump="help-sec-4">4 · Дані та шифрування</button>
+  <button class="help-chip" type="button" data-help-jump="help-sec-5">5 · Карта місій</button>
+  <button class="help-chip" type="button" data-help-jump="help-sec-6">6 · Списки</button>
+  <button class="help-chip" type="button" data-help-jump="help-sec-7">7 · Навігація</button>
+  <button class="help-chip help-chip--accent" type="button" data-help-jump="help-sec-8">8 · Встановити PWA</button>
+  <button class="help-chip" type="button" data-help-jump="help-sec-9">9 · Конфіденційність</button>
+  <button class="help-chip" type="button" data-help-jump="help-sec-10">10 · Контакти</button>
+</nav>
+
+<!-- ────────────────────────────────────────────────────────────── -->
+<!-- Секція 1 — Про застосунок.  UA: Про застосунок.                -->
+<!-- ────────────────────────────────────────────────────────────── -->
+<details class="help-section" id="help-sec-1" open>
+<summary class="help-section-title">
+  <span class="help-section-num">1</span>
+  <span class="help-section-heading-text">Про застосунок</span>
+  <svg class="help-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="6 9 12 15 18 9"/>
+  </svg>
+</summary>
+<div class="help-section-body">
 
 <p><strong>Звіт БПЛА</strong> — це односторінковий веб-додаток для швидкого складання <em>структурованих</em> звітів про вилоти БПЛА прямо в браузері. Кожен звіт — окремий запис із полями форми, версією та (за потреби) статусом синхронізації з Google Таблицями. Роботу розраховано на польові умови: телефон або планшет, стійка робота без стабільного інтернету після першого завантаження.</p>
 
 <p><strong>Звіти</strong> зберігаються в <strong>IndexedDB</strong> (база <code>report_uav_db_v2</code>) — це основне локальне сховище журналу, черги відправки та налаштувань інтеграції. <strong>Лічильник екіпажу</strong> та <strong>перевизначення списків</strong> форми лишаються в <code>localStorage</code> цього браузера. Дані за замовчуванням <strong>не надсилаються</strong> на сервер розробника. Відправка в таблицю — лише на ваш URL Google Apps Script; налаштування в меню <strong>«Дані та інтеграція»</strong> (див. розділ 4). Перенести архів між пристроями: зашифрований експорт/імпорт на тому ж екрані. Зашифровані копії зі старого застосунку (v1) також підтримуються поряд з v2.</p>
-</section>
 
-<section class="help-section" aria-labelledby="help-h-2">
-<h2 class="help-section-title" id="help-h-2"><span class="help-section-num">2</span><span class="help-section-heading-text">Форма звіту (головний екран)</span></h2>
+<div class="help-feature-grid" aria-label="Коротко про можливості">
+  <div class="help-feature">
+    <div class="help-feature-icon" aria-hidden="true">📝</div>
+    <div class="help-feature-title">Структурована форма</div>
+    <div class="help-feature-text">Уніфікований шаблон — однакові звіти від різних операторів.</div>
+  </div>
+  <div class="help-feature">
+    <div class="help-feature-icon" aria-hidden="true">📊</div>
+    <div class="help-feature-title">Журнал + KPI</div>
+    <div class="help-feature-text">Вильоти, ураження, втрати, ефективність за період.</div>
+  </div>
+  <div class="help-feature">
+    <div class="help-feature-icon" aria-hidden="true">🗺️</div>
+    <div class="help-feature-title">Карта місій</div>
+    <div class="help-feature-text">Leaflet + MGRS, супутник/OSM/рельєф, кластеризація.</div>
+  </div>
+  <div class="help-feature">
+    <div class="help-feature-icon" aria-hidden="true">📥</div>
+    <div class="help-feature-title">Google Sheets</div>
+    <div class="help-feature-text">Upsert у <em>вашу</em> таблицю за унікальним report_id.</div>
+  </div>
+  <div class="help-feature">
+    <div class="help-feature-icon" aria-hidden="true">🔐</div>
+    <div class="help-feature-title">Шифрований експорт</div>
+    <div class="help-feature-text">AES-256-GCM + PBKDF2 (250 000). Пароль лише у вашій голові.</div>
+  </div>
+  <div class="help-feature">
+    <div class="help-feature-icon" aria-hidden="true">📶</div>
+    <div class="help-feature-title">Офлайн-first</div>
+    <div class="help-feature-text">PWA із Service Worker — працює без мережі після 1-го візиту.</div>
+  </div>
+</div>
+
+</div>
+</details>
+
+<!-- ────────────────────────────────────────────────────────────── -->
+<!-- Секція 2 — Форма звіту.  UA: Форма звіту.                       -->
+<!-- ────────────────────────────────────────────────────────────── -->
+<details class="help-section" id="help-sec-2">
+<summary class="help-section-title">
+  <span class="help-section-num">2</span>
+  <span class="help-section-heading-text">Форма звіту (головний екран)</span>
+  <svg class="help-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="6 9 12 15 18 9"/>
+  </svg>
+</summary>
+<div class="help-section-body">
 
 <p>На цьому екрані з полів форми збирається повний текст звіту в єдиному форматі (кілька перших рядків — без міток, далі — рядки з назвами полів через двокрапку).</p>
 
+<details class="help-sub" open>
+<summary class="help-sub-summary">Поля та їх зміст</summary>
+<div class="help-sub-body">
 <p class="help-kicker"><em>Поля та їх зміст:</em></p>
 <p class="help-bullets">
 • <strong>Екіпаж</strong> — позивний (текстовий рядок) і при потребі <strong>лічильник вильотів</strong> (число 1–25 у дужках біля позивного). Лічильник зберігається між сесіями; після успішного «Готово» він може автоматично збільшитися на 1 (до верхньої межі).<br>
@@ -505,15 +617,46 @@ title="Зберегти зміни"
 • <strong>Стрім</strong> — посилання на потік або плейсхолдер «---».<br>
 • <strong>Результат</strong> — зі списку або довільний текст; для зручності статистики рекомендовано формат <strong>тип результату</strong>, при потребі пробіл і <strong>деталі в круглих дужках</strong>. Для KPI і групування в журналі використовується лише частина <em>до першої дужки</em> (ключ); текст у дужках лише уточнює звіт і не змінює категорію. Наприклад: <code>Ураження (знищення антени)</code>.
 </p>
+</div>
+</details>
+
+<details class="help-sub">
+<summary class="help-sub-summary">Поради та кнопка «Готово»</summary>
+<div class="help-sub-body">
+<p class="help-kicker"><em>Поради, які економлять секунди</em></p>
+<div class="help-tips">
+  <div class="help-tip"><span class="help-tip-ico">⏱</span><span>Кнопка «Зараз» біля часу — один тап замість ручного набору ГГ:ХХ.</span></div>
+  <div class="help-tip"><span class="help-tip-ico">✋</span><span><strong>Довге натискання</strong> на полі зі списком (борт, характер, боєприпас, результат) — перемикає режим у «довільний ввід».</span></div>
+  <div class="help-tip"><span class="help-tip-ico">🔢</span><span>Лічильник екіпажу після «Готово» збільшується автоматично — можна не торкатися.</span></div>
+  <div class="help-tip"><span class="help-tip-ico">📋</span><span>«Готово» одразу <em>копіює</em> текст у буфер — вставляйте у Signal / Telegram / Sheets.</span></div>
+</div>
 
 <p class="help-callout help-callout--action"><strong>Кнопка «Готово»</strong> збирає поля форми, перевіряє їх, створює новий звіт у локальній базі (унікальний id, версія 1, текст будується з полів), показує текст у полі внизу, копіює його в буфер і оновлює дату форми й лічильник екіпажу. Залежно від режиму відправки в налаштуваннях звіт може лишитися чернеткою, одразу піти в чергу на відправку або отримати відкладену відправку.</p>
-</section>
+</div>
+</details>
 
-<section class="help-section" aria-labelledby="help-h-3">
-<h2 class="help-section-title" id="help-h-3"><span class="help-section-num">3</span><span class="help-section-heading-text">Журнал, KPI та робота з історією</span></h2>
+</div>
+</details>
+
+<!-- ────────────────────────────────────────────────────────────── -->
+<!-- Секція 3 — Журнал і KPI.                                       -->
+<!-- ────────────────────────────────────────────────────────────── -->
+<details class="help-section" id="help-sec-3">
+<summary class="help-section-title">
+  <span class="help-section-num">3</span>
+  <span class="help-section-heading-text">Журнал, KPI та робота з історією</span>
+  <svg class="help-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="6 9 12 15 18 9"/>
+  </svg>
+</summary>
+<div class="help-section-body">
 
 <p>Екран <strong>«Журнал та статистика»</strong> читає звіти з <strong>IndexedDB</strong>; є верхня межа кількості записів на пристрої. Один і той самий період і пошук застосовуються до зведення, списку карток і карти.</p>
 
+<details class="help-sub" open>
+<summary class="help-sub-summary">Фільтр періоду та KPI</summary>
+<div class="help-sub-body">
 <p class="help-kicker"><em>Фільтр періоду</em></p>
 <p>Дата «від / до» і час «від / до» будуються зі структурованих полів звіту: <strong>дата місії</strong> та <strong>час ураження/втрати</strong> (не з «ручного» парсингу довільного тексту). За замовчуванням зазвичай обрано поточний місяць. Кнопка «Показати» фіксує умови; лічильник «Відібрано звітів: N із M» показує, скільки записів потрапило під фільтр порівняно з усім архівом.</p>
 
@@ -524,14 +667,40 @@ title="Зберегти зміни"
 • <strong>Втрат</strong> — кількість із категорією «Втрата борта».<br>
 • <strong>Ефективність</strong> — відношення уражень до загальної кількості відфільтрованих вильотів у відсотках.
 </p>
+</div>
+</details>
 
+<details class="help-sub">
+<summary class="help-sub-summary">Індикатори статусу синхронізації</summary>
+<div class="help-sub-body">
+<p class="help-kicker"><em>Індикатори статусу синхронізації (кольорова крапка на картці)</em></p>
+<div class="help-status-legend">
+  <div class="help-status-item"><span class="help-dot help-dot--draft"></span>Чернетка</div>
+  <div class="help-status-item"><span class="help-dot help-dot--sched"></span>Відкладено</div>
+  <div class="help-status-item"><span class="help-dot help-dot--queued"></span>У черзі</div>
+  <div class="help-status-item"><span class="help-dot help-dot--sending"></span>Надсилаю</div>
+  <div class="help-status-item"><span class="help-dot help-dot--sent"></span>Надіслано</div>
+  <div class="help-status-item"><span class="help-dot help-dot--resync"></span>Потрібна ресинхр.</div>
+  <div class="help-status-item"><span class="help-dot help-dot--error"></span>Помилка</div>
+</div>
+</div>
+</details>
+
+<details class="help-sub">
+<summary class="help-sub-summary">Вкладки «Статистика» та «Журнал»</summary>
+<div class="help-sub-body">
 <p class="help-subblock"><strong class="help-subblock-label">Вкладка «Статистика».</strong> Текстове зведення з розбивкою за бортами, боєприпасами, типами місій і групами нормалізованих результатів. Повторювані формулювання (на кшталт варіантів «ураження…») зводяться до однієї категорії там, де це передбачено мапінгом. Текст зведення можна скопіювати кнопкою «Копіювати зведення».</p>
 
 <p class="help-subblock"><strong class="help-subblock-label">Вкладка «Журнал».</strong> Картка показує текст звіту, збоку — крапка-індикатор <strong>статусу синхронізації</strong> (наведіть для підказки). Внизу ряд іконок: <strong>копіювати</strong>, за підтримки браузера — <strong>поділитися</strong>, далі дії залежно від статусу — <strong>відправити</strong> в Google Таблицю, <strong>редагувати</strong>, відкладена відправка, скасування черги, <strong>виправити</strong> для вже надісланих (після збереження — «надіслати зміни»), повтор після помилки тощо. Текст звіту завжди відповідає полям; повне редагування через діалог.</p>
+</div>
+</details>
 
+<details class="help-sub">
+<summary class="help-sub-summary">Масова відправка та видалення</summary>
+<div class="help-sub-body">
 <p class="help-kicker"><em>Масова відправка в таблицю:</em></p>
 <p class="help-bullets">
-• Кнопка <strong>«Відправити список у таблицю»</strong> ставить у чергу <strong>усі звіти з поточного відфільтрованого списку</strong> (період + пошук + «Показати»), окрім тих, що в статусі <strong>відкладена відправка (scheduled)</strong>. Це стосується й уже <strong>надісланих</strong> (sent): ух таблиці знову записуються за тим самим <strong>report_id</strong> — зручно, якщо ви очистили лист у Google, а в додатку статус лишився «надіслано».<br>
+• Кнопка <strong>«Відправити список у таблицю»</strong> ставить у чергу <strong>усі звіти з поточного відфільтрованого списку</strong> (період + пошук + «Показати»), окрім тих, що в статусі <strong>відкладена відправка (scheduled)</strong>. Це стосується й уже <strong>надісланих</strong> (sent): у таблиці вони знову записуються за тим самим <strong>report_id</strong> — зручно, якщо ви очистили лист у Google, а в додатку статус лишився «надіслано».<br>
 • Потрібні збережений URL Apps Script і мережа; режим «вручну» на нові звіти не заважає цій кнопці.
 </p>
 
@@ -541,31 +710,45 @@ title="Зберегти зміни"
 • <strong>«Видалити всі звіти»</strong> — на екрані <strong>«Дані та інтеграція»</strong>, блок «Очистити архів»; повністю очищає локальний журнал на цьому пристрої. Спочатку зробіть експорт за потреби.<br>
 • На <strong>карті</strong> в картці звіту — кнопка з іконкою кошика видаляє один запис після підтвердження.
 </p>
+</div>
+</details>
 
 <p class="help-muted-block">Кожен звіт з моменту створення має стабільний <strong>id</strong>; при збереженні змін зростає <strong>версія</strong>. Якщо немає мережі або відправка не вдалася, звіт може потрапити в <strong>чергу</strong> з повторними спробами пізніше.</p>
-</section>
+</div>
+</details>
 
-<section class="help-section help-section--crypto" aria-labelledby="help-h-4">
-<h2 class="help-section-title" id="help-h-4"><span class="help-section-num">4</span><span class="help-section-heading-text">Дані, інтеграція, експорт і шифрування</span></h2>
+<!-- ────────────────────────────────────────────────────────────── -->
+<!-- Секція 4 — Дані та шифрування.                                 -->
+<!-- ────────────────────────────────────────────────────────────── -->
+<details class="help-section help-section--crypto" id="help-sec-4">
+<summary class="help-section-title">
+  <span class="help-section-num">4</span>
+  <span class="help-section-heading-text">Дані, інтеграція, експорт і шифрування</span>
+  <svg class="help-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="6 9 12 15 18 9"/>
+  </svg>
+</summary>
+<div class="help-section-body">
 
 <p>Меню → <strong>«Дані та інтеграція»</strong>. Тут: (1) посилання на Google Таблицю та URL веб-додатку <strong>Apps Script</strong>, режим відправки, затримка, автоблокування — збереження й «Перевірити з’єднання»; (2) зашифрований <strong>експорт / імпорт</strong> файлу; (3) небезпечна дія <strong>«Видалити всі звіти»</strong> з локального архіву. Перенесення історії між пристроями або резервна копія <em>без</em> відкритого зберігання в мережі — через цей зашифрований файл.</p>
 
 <p class="help-kicker"><em>Експорт — кроки</em></p>
-<p class="help-steps">
-1) натисніть «Експорт»;<br>
-2) введіть <strong>парольну фразу</strong> (ключ) і повторіть її — обидва введення мають збігатися;<br>
-3) браузер збереже файл <code>uav_reports_v2.enc.json</code> — це JSON обгортка навколо зашифрованого вмісту (формат звітів v2);<br>
-4) зберігайте файл і пароль <strong>окремо</strong>; без пароля дані з файлу не відновити.
-</p>
+<ol class="help-stepper">
+  <li><span class="help-stepper-num">1</span>Натисніть <strong>«Експорт»</strong>.</li>
+  <li><span class="help-stepper-num">2</span>Введіть <strong>парольну фразу</strong> (ключ) і повторіть її — обидва введення мають збігатися.</li>
+  <li><span class="help-stepper-num">3</span>Браузер збереже файл <code>uav_reports_v2.enc.json</code> — JSON-обгортка навколо зашифрованого вмісту (формат v2).</li>
+  <li><span class="help-stepper-num">4</span>Зберігайте файл і пароль <strong>окремо</strong>. Без пароля дані з файлу не відновити.</li>
+</ol>
 
 <p class="help-kicker"><em>Імпорт — кроки</em></p>
-<p class="help-steps">
-1) «Імпорт» → оберіть відповідний <code>.json</code> файл;<br>
-2) введіть той самий ключ;<br>
-3) додаток перевіряє структуру та цілісність пакета (підтримуються архіви <strong>v2</strong> і зашифрований експорт <strong>v1</strong> зі старого застосунку);<br>
-4) звіти з файлу <strong>зливаються</strong> із поточним журналом за <strong>id</strong>: якщо id збігається, для того ж id переважають дані з файлу;<br>
-5) інтерфейс журналу та карти оновлюється автоматично. Імпортовані записи зазвичай у статусі чернетки — їх можна надіслати в таблицю з картки або кнопкою масової відправки у журналі.
-</p>
+<ol class="help-stepper">
+  <li><span class="help-stepper-num">1</span><strong>«Імпорт»</strong> → оберіть відповідний <code>.json</code> файл.</li>
+  <li><span class="help-stepper-num">2</span>Введіть той самий ключ.</li>
+  <li><span class="help-stepper-num">3</span>Додаток перевіряє структуру та цілісність пакета (підтримуються архіви <strong>v2</strong> і зашифрований експорт <strong>v1</strong> зі старого застосунку).</li>
+  <li><span class="help-stepper-num">4</span>Звіти з файлу <strong>зливаються</strong> із поточним журналом за <strong>id</strong>: якщо id збігається, для того ж id переважають дані з файлу.</li>
+  <li><span class="help-stepper-num">5</span>Інтерфейс журналу та карти оновлюється автоматично. Імпортовані записи зазвичай у статусі чернетки — їх можна надіслати в таблицю з картки або кнопкою масової відправки у журналі.</li>
+</ol>
 
 <p class="help-kicker"><em>Технічні деталі шифрування (Web Crypto у браузері)</em></p>
 <p class="help-bullets help-bullets--dense">
@@ -577,28 +760,52 @@ title="Зберегти зміни"
 </p>
 
 <p class="help-callout help-callout--security">Файл експорту без пароля <strong>не розшифрувати</strong>. Пароль ніде в застосунку не зберігається.</p>
-</section>
+</div>
+</details>
 
-<section class="help-section" aria-labelledby="help-h-5">
-<h2 class="help-section-title" id="help-h-5"><span class="help-section-num">5</span><span class="help-section-heading-text">Карта місій</span></h2>
+<!-- ────────────────────────────────────────────────────────────── -->
+<!-- Секція 5 — Карта місій.                                        -->
+<!-- ────────────────────────────────────────────────────────────── -->
+<details class="help-section" id="help-sec-5">
+<summary class="help-section-title">
+  <span class="help-section-num">5</span>
+  <span class="help-section-heading-text">Карта місій</span>
+  <svg class="help-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="6 9 12 15 18 9"/>
+  </svg>
+</summary>
+<div class="help-section-body">
 
 <p>Координати беруться зі структурованого поля звіту (MGRS), а не з «розбору» довільного тексту. Показуються лише звіти, що пройшли той самий фільтр періоду, що й журнал. Рушій маркерів — Leaflet. У <strong>нижньому правому куті</strong> карти — перемикач <strong>базової підкладки</strong>: схема OSM, супутник (Esri), рельєф і висоти (OpenTopoMap). Вибір зберігається в цьому браузері для наступних відвідувань.</p>
 
 <p class="help-kicker"><em>Маркери за кількістю місій у точці</em></p>
-<p class="help-bullets">
-• одна місія — окрема ціанова крапка;<br>
-• 2–3 — зелений круг із числом;<br>
-• 4–5 — лаймовий круг із числом;<br>
-• 6 і більше — великий янтарно-помаранчевий маркер з числом.
-</p>
+<div class="help-marker-legend">
+  <div class="help-marker-row"><span class="help-marker help-marker--one"></span><span>Одна місія — ціанова крапка</span></div>
+  <div class="help-marker-row"><span class="help-marker help-marker--few">2–3</span><span>2–3 місії — зелений круг із числом</span></div>
+  <div class="help-marker-row"><span class="help-marker help-marker--mid">4–5</span><span>4–5 — лаймовий круг із числом</span></div>
+  <div class="help-marker-row"><span class="help-marker help-marker--many">6+</span><span>6 і більше — помаранчевий кластер</span></div>
+</div>
 
 <p class="help-subblock"><strong class="help-subblock-label">Перегляд на карті.</strong> Клік по одиночному маркеру відкриває картку з повним текстом, діями «Копіювати», «Поділитися» та малою кнопкою видалення з іконкою кошика. Клік по груповому маркеру відкриває список місій у точці (новіші зверху); зі списку можна перейти до картки звіту. «Назад» повертає до списку, «✕» закриває оверлей.</p>
 
 <p>У правому верхньому куті зони карти — кнопка <strong>розгортання на весь екран</strong> вікна застосунку (під заголовок «Звіт по БПЛА»); у розгорнутому режимі та ж кнопка <strong>згортає</strong> назад. Перехід на інший екран з меню також збирає карту з повноекранного режиму. Завантаження тайлів потребує мережі; офлайн доступні лише вже переглянуті фрагменти карти.</p>
-</section>
+</div>
+</details>
 
-<section class="help-section" aria-labelledby="help-h-6">
-<h2 class="help-section-title" id="help-h-6"><span class="help-section-num">6</span><span class="help-section-heading-text">Налаштування списків</span></h2>
+<!-- ────────────────────────────────────────────────────────────── -->
+<!-- Секція 6 — Налаштування списків.                               -->
+<!-- ────────────────────────────────────────────────────────────── -->
+<details class="help-section" id="help-sec-6">
+<summary class="help-section-title">
+  <span class="help-section-num">6</span>
+  <span class="help-section-heading-text">Налаштування списків</span>
+  <svg class="help-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="6 9 12 15 18 9"/>
+  </svg>
+</summary>
+<div class="help-section-body">
 
 <p>Окремий екран для редагування значень, які підставляються у випадаючі списки форми:</p>
 <p class="help-bullets help-bullets--compact">
@@ -612,18 +819,67 @@ title="Зберегти зміни"
 <p>Елементи можна додавати, видаляти й переставляти перетягуванням. Збережені на пристрої перевизначення мають пріоритет над початковим файлом <code>config.json</code>; є можливість скинути списки до базових значень.</p>
 
 <p class="help-callout help-callout--tip">Інтеграція з Google Таблицями перенесена на екран <strong>«Дані та інтеграція»</strong> (разом із резервним копіюванням). Екран <strong>«Налаштування списків»</strong> містить лише редактор значень для полів форми.</p>
-</section>
+</div>
+</details>
 
-<section class="help-section" aria-labelledby="help-h-7">
-<h2 class="help-section-title" id="help-h-7"><span class="help-section-num">7</span><span class="help-section-heading-text">Навігація</span></h2>
+<!-- ────────────────────────────────────────────────────────────── -->
+<!-- Секція 7 — Навігація.                                          -->
+<!-- ────────────────────────────────────────────────────────────── -->
+<details class="help-section" id="help-sec-7">
+<summary class="help-section-title">
+  <span class="help-section-num">7</span>
+  <span class="help-section-heading-text">Навігація між екранами</span>
+  <svg class="help-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="6 9 12 15 18 9"/>
+  </svg>
+</summary>
+<div class="help-section-body">
 
 <p class="help-callout help-callout--tip"><strong>Довге натискання</strong> на заголовок «Звіт по БПЛА» відкриває меню екранів: форма, журнал і статистика, <strong>дані та інтеграція</strong>, карта, налаштування списків, ця довідка. Поточний екран підсвічено; «Закрити» ховає меню.</p>
-</section>
+</div>
+</details>
 
-<section class="help-section" aria-labelledby="help-h-8">
-<h2 class="help-section-title" id="help-h-8"><span class="help-section-num">8</span><span class="help-section-heading-text">PWA на смартфоні</span></h2>
+<!-- ────────────────────────────────────────────────────────────── -->
+<!-- Секція 8 — PWA. Жирна акцентна картка з кнопкою встановлення.  -->
+<!-- EN: PWA section — highlighted install card with OS-specific help. -->
+<!-- UA: Секція PWA — акцентна картка з інструкціями під ОС.           -->
+<!-- ────────────────────────────────────────────────────────────── -->
+<details class="help-section help-section--pwa" id="help-sec-8">
+<summary class="help-section-title">
+  <span class="help-section-num">8</span>
+  <span class="help-section-heading-text">Встановити на смартфон (PWA)</span>
+  <svg class="help-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="6 9 12 15 18 9"/>
+  </svg>
+</summary>
+<div class="help-section-body">
 
-<button class="pwa-install-btn" id="pwaInstallBtn" type="button" hidden>
+<!-- EN: Prominent install CTA.  UA: Помітна кнопка встановлення. -->
+<div class="pwa-cta">
+  <div class="pwa-cta-icon" aria-hidden="true">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="5" y="2" width="14" height="20" rx="3"/>
+      <path d="M12 18h.01"/>
+    </svg>
+  </div>
+  <div class="pwa-cta-body">
+    <div class="pwa-cta-title">Додайте «Звіт БПЛА» на головний екран</div>
+    <div class="pwa-cta-text">Запускайте як звичайну аплікацію з іконки. Працює офлайн після першого завантаження.</div>
+    <div class="pwa-cta-actions" aria-label="Швидкі посилання на інструкції для ОС">
+      <button type="button" class="pwa-jump-btn" data-pwa-guide-jump="pwa-guide-android">Android</button>
+      <button type="button" class="pwa-jump-btn" data-pwa-guide-jump="pwa-guide-ios">iPhone / iPad</button>
+      <button type="button" class="pwa-jump-btn" data-pwa-guide-jump="pwa-guide-desktop">Desktop</button>
+    </div>
+  </div>
+</div>
+
+<!-- EN: Install buttons — both use `data-pwa-install` (see pwa-install.js).
+     UA: Дві кнопки з `data-pwa-install` — логіка в pwa-install.js. -->
+<div class="pwa-install-row">
+<button class="pwa-install-btn" id="pwaInstallBtn" type="button" hidden data-pwa-install>
   <svg class="pwa-install-btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M12 5v14"/>
@@ -631,24 +887,110 @@ title="Зберегти зміни"
   </svg>
   Встановити застосунок
 </button>
+<button class="pwa-install-btn pwa-install-btn--alt" type="button" hidden data-pwa-install aria-label="Встановити PWA на пристрій">
+  <svg class="pwa-install-btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 5v14"/>
+    <path d="M19 12l-7 7-7-7"/>
+  </svg>
+  Додати на екран
+</button>
+</div>
 
-<p class="help-subblock"><strong class="help-subblock-label">Навіщо.</strong> Швидкий запуск з іконки на початковому екрані; стійкіша робота офлайн після першого завантаження; менший ризик «загубити» вкладку серед сайтів.</p>
+<!-- EN: Visible status chip when installation is impossible / already done.
+     UA: Видимий чіп-статус, коли встановлення неможливе або вже зроблене. -->
+<div class="pwa-status" id="pwaStatus" hidden>
+  <span class="pwa-status-dot"></span>
+  <span class="pwa-status-text" id="pwaStatusText"></span>
+</div>
 
-<p class="help-subblock"><strong class="help-subblock-label">Android (Chrome).</strong> Меню (⋮) → «Встановити застосунок» або «Додати на головний екран» → підтвердіть.</p>
+<!-- EN: OS-specific installation guides.  UA: Інструкції під ОС. -->
+<div class="pwa-guides">
+  <details class="pwa-guide" id="pwa-guide-android">
+    <summary class="pwa-guide-head">
+      <span class="pwa-guide-os">🤖 Android · Chrome / Edge</span>
+      <svg class="help-section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </summary>
+    <ol class="help-stepper help-stepper--inline">
+      <li><span class="help-stepper-num">1</span>Натисніть <strong>⋮</strong> (меню браузера) у верхньому правому куті.</li>
+      <li><span class="help-stepper-num">2</span>Виберіть <strong>«Встановити застосунок»</strong> або <strong>«Додати на головний екран»</strong>.</li>
+      <li><span class="help-stepper-num">3</span>Підтвердіть — іконка з’явиться поряд з іншими застосунками.</li>
+    </ol>
+    <p class="help-tip-note">Підказка: якщо у цій вкладці зверху є кнопка «Встановити застосунок» — можна не шукати меню.</p>
+  </details>
 
-<p class="help-subblock"><strong class="help-subblock-label">iPhone / iPad (Safari).</strong> «Поділитися» → «На екран “Додому”» → підтвердіть.</p>
+  <details class="pwa-guide" id="pwa-guide-ios">
+    <summary class="pwa-guide-head">
+      <span class="pwa-guide-os">🍎 iPhone / iPad · Safari</span>
+      <svg class="help-section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </summary>
+    <ol class="help-stepper help-stepper--inline">
+      <li><span class="help-stepper-num">1</span>Відкрийте сторінку в <strong>Safari</strong> (не в Chrome/іншому браузері — iOS не дозволяє встановлювати PWA з них).</li>
+      <li><span class="help-stepper-num">2</span>Натисніть кнопку <strong>«Поділитися»</strong> <span class="pwa-ios-share" aria-hidden="true">⎋</span> у нижній панелі.</li>
+      <li><span class="help-stepper-num">3</span>Прокрутіть меню і виберіть <strong>«На екран “Додому”»</strong>.</li>
+      <li><span class="help-stepper-num">4</span>За бажанням відредагуйте назву — натисніть <strong>«Додати»</strong>.</li>
+    </ol>
+  </details>
+
+  <details class="pwa-guide" id="pwa-guide-desktop">
+    <summary class="pwa-guide-head">
+      <span class="pwa-guide-os">🖥 Desktop · Chrome / Edge</span>
+      <svg class="help-section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </summary>
+    <ol class="help-stepper help-stepper--inline">
+      <li><span class="help-stepper-num">1</span>У правій частині адресного рядка знайдіть іконку <strong>«Встановити»</strong> (монітор зі стрілкою).</li>
+      <li><span class="help-stepper-num">2</span>Натисніть її — підтвердіть встановлення у діалозі.</li>
+      <li><span class="help-stepper-num">3</span>Застосунок відкриватиметься у власному вікні без адресного рядка.</li>
+    </ol>
+  </details>
+</div>
+
+<p class="help-subblock"><strong class="help-subblock-label">Навіщо встановлювати?</strong> Швидкий запуск з іконки на початковому екрані; стійкіша робота офлайн після першого завантаження; менший ризик «загубити» вкладку серед сайтів; повноекранний режим без адресного рядка.</p>
 
 <p class="help-callout help-callout--warn"><strong>Важливо:</strong> перший візит бажано з інтернетом, щоб сервіс-воркер і файли закешувались; для <strong>index.html</strong> і <strong>js/app.js</strong> застосунок намагається спочатку взяти свіжу копію з мережі, щоб після оновлення не зависати на битій сторінці в кеші. Якщо після оновлення щось «ламається» — закрийте вкладку, очистіть кеш сайту або перевстановіть PWA.</p>
-</section>
+</div>
+</details>
 
-<section class="help-section" aria-labelledby="help-h-9">
-<h2 class="help-section-title" id="help-h-9"><span class="help-section-num">9</span><span class="help-section-heading-text">Конфіденційність</span></h2>
+<!-- ────────────────────────────────────────────────────────────── -->
+<!-- Секція 9 — Конфіденційність.                                   -->
+<!-- ────────────────────────────────────────────────────────────── -->
+<details class="help-section" id="help-sec-9">
+<summary class="help-section-title">
+  <span class="help-section-num">9</span>
+  <span class="help-section-heading-text">Конфіденційність і дані</span>
+  <svg class="help-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="6 9 12 15 18 9"/>
+  </svg>
+</summary>
+<div class="help-section-body">
 
 <p>Звіти та черга синхронізації зберігаються в <strong>IndexedDB</strong>; лічильник і списки форми — частково в <code>localStorage</code>. На сервер розробника нічого не надсилається. Якщо увімкнено інтеграцію, звіти можуть відправлятися лише на <strong>ваш</strong> URL Apps Script. Резервна копія — зашифрований файл і пароль (розділ 4).</p>
-</section>
+</div>
+</details>
 
-<section class="help-section help-section--contacts" aria-labelledby="help-h-10">
-<h2 class="help-section-title" id="help-h-10"><span class="help-section-num">10</span><span class="help-section-heading-text">Контакти</span></h2>
+<!-- ────────────────────────────────────────────────────────────── -->
+<!-- Секція 10 — Контакти.                                          -->
+<!-- ────────────────────────────────────────────────────────────── -->
+<details class="help-section help-section--contacts" id="help-sec-10">
+<summary class="help-section-title">
+  <span class="help-section-num">10</span>
+  <span class="help-section-heading-text">Контакти та зворотний зв’язок</span>
+  <svg class="help-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="6 9 12 15 18 9"/>
+  </svg>
+</summary>
+<div class="help-section-body">
 
 <ul class="help-contact-list">
 <li>
@@ -679,8 +1021,12 @@ title="Зберегти зміни"
 </a>
 </li>
 </ul>
-</section>
+</div>
+</details>
 
+<!-- ────────────────────────────────────────────────────────────── -->
+<!-- Посилання на v1 (поза акордеоном).                             -->
+<!-- ────────────────────────────────────────────────────────────── -->
 <section class="help-section help-section--v1-link" aria-label="Попередня версія">
 <div class="v1-link-block">
   <span class="v1-link-label">Попередня версія</span>
@@ -691,6 +1037,15 @@ title="Зберегти зміни"
   </a>
 </div>
 </section>
+
+<!-- EN: Floating "back to top" — shows when scrolled inside help.
+     UA: Плаваюча «вгору» — з’являється при прокрутці в довідці. -->
+<button class="help-to-top" id="helpToTopBtn" type="button" aria-label="Догори" hidden>
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="18 15 12 9 6 15"/>
+  </svg>
+</button>
 
 </div>
 </div>

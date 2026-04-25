@@ -27,7 +27,7 @@ import {
   isWithinPeriodFilter,
   getImpactTimestampForReport,
 } from "../filters.js";
-import { mapResultToCategory, isKpiHit, isKpiLoss } from "../result-mapping.js";
+import { computeStats, buildSummaryText, updateKPI } from "../journal-stats.js";
 
 let initialized = false;
 
@@ -42,25 +42,6 @@ async function copyTextSmart(text) {
   setStatus(ok ? "Скопійовано." : "Помилка копіювання.");
 }
 
-/** Increment a Map<string, number> counter for key. */
-function inc(map, key) {
-  map.set(key, (map.get(key) || 0) + 1);
-}
-
-/** Update KPI dashboard widgets. */
-function updateKPI(total, hits, loss) {
-  const kpiTotal = $("kpiTotal");
-  const kpiHits = $("kpiHits");
-  const kpiLoss = $("kpiLoss");
-  const kpiRate = $("kpiRate");
-  if (kpiTotal) kpiTotal.textContent = String(total);
-  if (kpiHits) kpiHits.textContent = String(hits);
-  if (kpiLoss) kpiLoss.textContent = String(loss);
-  if (kpiRate) {
-    const rate = total > 0 ? Math.round((hits / total) * 100) : 0;
-    kpiRate.textContent = rate + "%";
-  }
-}
 
 /** @type {(() => void) | null} */
 let journalLayoutResizeBound = null;
@@ -457,29 +438,10 @@ async function renderForSelectedPeriod() {
     return;
   }
 
-  const counts = {
-    total: filtered.length,
-    drones: new Map(),
-    ammo: new Map(),
-    missionTypes: new Map(),
-    results: new Map(),
-  };
-  let hits = 0;
-  let loss = 0;
-  const allTexts = [];
+  const stats = computeStats(filtered);
 
   for (const item of filtered) {
     const f = normalizeFields(item.fields);
-    allTexts.push(item.text);
-
-    if (f.drone) inc(counts.drones, f.drone);
-    if (f.ammo) inc(counts.ammo, f.ammo);
-    if (f.missionType) inc(counts.missionTypes, f.missionType);
-    if (f.result) {
-      inc(counts.results, mapResultToCategory(f.result));
-      if (isKpiHit(f.result)) hits += 1;
-      if (isKpiLoss(f.result)) loss += 1;
-    }
 
     const dateHuman = f.date
       ? /^\d{4}-\d{2}-\d{2}$/.test(f.date)
@@ -526,34 +488,14 @@ async function renderForSelectedPeriod() {
     cardsEl.appendChild(card);
   }
 
-  const parts = [];
-  const fmtPeriod = (d, t) => (d ? (t ? `${d} ${t}` : d) : "");
-  parts.push(`Період: ${fmtPeriod(fromIso, fromTimeStr)} → ${fmtPeriod(toIso, toTimeStr)}`);
-  parts.push("");
-  parts.push(`Кількість вильотів: ${counts.total}`);
-
-  const block = (label, map) => {
-    if (!map.size) return;
-    const entries = Array.from(map.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, count]) => `- ${name}: ${count}`)
-      .join("\n");
-    parts.push(`${label}:\n${entries}`);
-  };
-
-  block("Бортів", counts.drones);
-  block("Боєприпасів", counts.ammo);
-  block("Типів місій", counts.missionTypes);
-  block("Результатів", counts.results);
-
-  summaryEl.textContent = parts.join("\n\n");
+  summaryEl.textContent = buildSummaryText(stats, period);
 
   const btnCopyAll = $("btnJournalCopyAll");
   if (btnCopyAll) {
-    btnCopyAll.onclick = () => copyTextSmart(allTexts.join("\n\n---\n\n"));
+    btnCopyAll.onclick = () => copyTextSmart(stats.allTexts.join("\n\n---\n\n"));
   }
 
-  updateKPI(counts.total, hits, loss);
+  updateKPI(stats.total, stats.hits, stats.loss);
 }
 
 /**

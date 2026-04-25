@@ -1,5 +1,11 @@
 /**
- * CRUD for reports in IndexedDB.
+ * IndexedDB access for the `reports` object store (sorted reads, limits, bulk delete).
+ *
+ * EN: No Google Sheets or sync logic here — only persistence. Callers: `report-actions`,
+ *     import/export, tests. Uses `openDatabase()` from `db.js`.
+ * UA: Лише збереження звітів, без логіки Google Sheets. Викликають: `report-actions`,
+ *     імпорт/експорт. Підключення через `openDatabase()` з `db.js`.
+ *
  * @module reports-store
  */
 

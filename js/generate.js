@@ -60,13 +60,13 @@ function advanceCrewCounterAfterSnapshot_(fields) {
  * @returns {Promise<void>}
  */
 export function generate() {
-  generateChain = generateChain.then(_doGenerate).catch((err) => {
+  generateChain = generateChain.then(doGenerate_).catch((err) => {
     setStatus("Помилка генерації: " + (err instanceof Error ? err.message : String(err)));
   });
   return generateChain;
 }
 
-async function _doGenerate() {
+async function doGenerate_() {
   // Ensure date field is fresh (may have crossed midnight since last use)
   refreshMissionDateForNewDay();
   const dp = $("datePicker");
