@@ -1,18 +1,70 @@
 /**
- * Report generation: fields → entity → storage, clipboard, counter, date.
+ * Report generation — what happens when the user presses «Готово».
  *
- * Single exported function: `generate()`.
- * Called from the «Готово» button on the main form screen.
+ * EN:
+ *   This module is the bridge between the main form (`screens/mainForm.js`)
+ *   and the data layer (`report-actions.createAndStoreReport`). It is
+ *   intentionally tiny and side-effect-heavy — it touches the DOM
+ *   (textarea / date picker), the clipboard, IndexedDB and localStorage in
+ *   a fixed order.
  *
- * Flow:
- *   1. Sync date field to today if empty / stale.
- *   2. Collect fields from DOM via collectFieldsFromMainForm() — validates coords.
- *   3. Copy report text to clipboard.
- *   4. Persist to IndexedDB via createAndStoreReport() (handles sync queue too).
- *   5. Advance crew counter and update date for the next sortie.
+ *   Flow of one «Готово» press:
+ *     1) Refresh date field if a new day has begun
+ *        (`refreshMissionDateForNewDay`). Avoids the gotcha where the user
+ *        opened the form yesterday and the picker still says "yesterday".
+ *     2) Collect structured fields from the DOM via
+ *        `collectFieldsFromMainForm()`. If MGRS coords are invalid this
+ *        returns null and the flow aborts (the form already showed an
+ *        inline error).
+ *     3) Build the canonical text via `buildReportText()` and write it into
+ *        the readonly `#output` textarea so the user sees what was sent.
+ *     4) Remember the stream value (autocomplete in Settings).
+ *     5) Copy the text to the clipboard. Failures are non-fatal — we just
+ *        change the status line so the user can retry the copy manually.
+ *     6) Persist to IndexedDB via `createAndStoreReport(fields)` — this
+ *        also enqueues the report for Google Sheets if sendMode says so.
+ *     7) Advance the crew counter (1 → 2 → … → 25) and reset the date for
+ *        the NEXT sortie. We do this AFTER the save so a crash mid-save
+ *        does not skip a number.
+ *     8) Update empty-field highlights (visual cue).
  *
- * Concurrency: generateChain serialises rapid taps on «Готово» so that
- * field collection and counter increment never interleave between two calls.
+ *   Concurrency:
+ *     `generateChain` is a Promise chain. Two fast «Готово» taps cannot
+ *     interleave: the second waits for the first to finish reading the
+ *     form before it starts. Without this lock the counter would advance
+ *     twice but only one report would land.
+ *
+ * UA:
+ *   Цей модуль — місток між головною формою (`screens/mainForm.js`) і шаром
+ *   даних (`report-actions.createAndStoreReport`). Свідомо мінімальний і
+ *   "побічно-ефектний" — у фіксованому порядку чіпає DOM
+ *   (textarea / date picker), буфер обміну, IndexedDB і localStorage.
+ *
+ *   Послідовність одного натискання «Готово»:
+ *     1) Освіжити поле дати, якщо настав новий день
+ *        (`refreshMissionDateForNewDay`). Інакше може лишатись «вчора».
+ *     2) Зібрати структурні поля з DOM через
+ *        `collectFieldsFromMainForm()`. Якщо MGRS-координати некоректні —
+ *        повертає null і ми зупиняємось (помилку вже показано біля поля).
+ *     3) Побудувати канонічний текст через `buildReportText()` і
+ *        записати у readonly `#output` — щоб користувач бачив, що
+ *        відправили.
+ *     4) Запам’ятати значення стріму (автодоповнення в Налаштуваннях).
+ *     5) Скопіювати текст у буфер. Помилка копіювання НЕ зупиняє потік —
+ *        просто змінюємо статус, користувач зможе скопіювати руками.
+ *     6) Зберегти у IndexedDB через `createAndStoreReport(fields)` — там
+ *        же звіт ставиться в чергу для Google Sheets, якщо це задано
+ *        режимом.
+ *     7) Збільшити лічильник екіпажу (1 → 2 → … → 25) і скинути дату
+ *        для НАСТУПНОГО вильоту. Робимо це ПІСЛЯ збереження, щоб збій
+ *        під час запису не пропустив число.
+ *     8) Оновити підсвітку порожніх полів.
+ *
+ *   Конкурентність:
+ *     `generateChain` — Promise-ланцюг. Два швидких натискання «Готово»
+ *     не можуть змішатися: друге чекає на завершення першого до
+ *     зчитування форми. Без цього блокування лічильник зросте двічі, а
+ *     звіт збережеться лише один.
  *
  * @module generate
  */
@@ -32,17 +84,25 @@ import { updateEmptyHighlights } from "./config.js";
 import { addStreamValue } from "./streams.js";
 
 /**
- * Serialisation lock: the second «Готово» tap queues behind the first,
- * preventing mixed field reads and counter increments.
+ * EN: Serialisation lock — the second «Готово» tap queues behind the first,
+ *     preventing mixed field reads and double counter increments.
+ * UA: Замок серіалізації — друге натискання «Готово» стає у чергу за
+ *     першим, виключаючи перемішані зчитування форми і подвійний
+ *     інкремент лічильника.
  * @type {Promise<void>}
  */
 let generateChain = Promise.resolve();
 
 /**
- * Advance crew counter in DOM + localStorage AFTER the report is saved.
- * Must not run before putReport completes — doing so would expose a window
- * where a concurrent tab reads the incremented number before the current
- * report is written, causing duplicates or gaps in Google Sheets.
+ * EN: Advances the crew counter in DOM + localStorage AFTER the report is
+ *     written. Doing this BEFORE save would let a concurrent tab read an
+ *     incremented number while the report is not yet on disk — duplicates
+ *     or gaps in Google Sheets become possible. Counter is capped at 25
+ *     to match the input's max.
+ * UA: Збільшує лічильник екіпажу в DOM + localStorage ПІСЛЯ запису звіту.
+ *     Якщо робити ДО запису — паралельна вкладка може прочитати збільшене
+ *     число, поки звіт ще не на диску, що дасть дублі або пропуски у
+ *     Google Sheets. Стеля — 25, як у поля форми.
  * @param {import("./report-format.js").ReportFields} fields
  */
 function advanceCrewCounterAfterSnapshot_(fields) {
@@ -54,9 +114,16 @@ function advanceCrewCounterAfterSnapshot_(fields) {
 }
 
 /**
- * Main generation entry point.
- * Collects form state, copies text, saves report, advances counter.
- * Serialised via generateChain to prevent race conditions on fast taps.
+ * EN: Main entry — bound to the «Готово» button. Collects form state,
+ *     copies text, saves the report, advances the counter. Serialised via
+ *     `generateChain` to prevent race conditions on fast taps. On any
+ *     thrown error the status line is updated; the chain is preserved so
+ *     subsequent taps still work.
+ * UA: Точка входу — повішена на кнопку «Готово». Збирає стан форми,
+ *     копіює текст, зберігає звіт, збільшує лічильник. Серіалізується
+ *     через `generateChain` — без рейсів на швидких натисканнях. На будь-яку
+ *     помилку оновлюємо статус; ланцюг лишається живий, наступні
+ *     натискання працюють.
  * @returns {Promise<void>}
  */
 export function generate() {

@@ -1,6 +1,39 @@
 /**
- * Main report form screen: initialization, bindings, config load.
- * Головний екран форми звіту: ініціалізація, обробники, завантаження конфігу.
+ * Main report form screen — initialisation, input bindings, config load.
+ *
+ * EN:
+ *   This is the "default" screen the app boots into. The module wires
+ *   together everything the user sees on the form:
+ *     - date / time pickers (auto-refresh on midnight crossing),
+ *     - "Зараз" buttons for takeoff / impact times,
+ *     - crew counter input (validated by `counter.js`),
+ *     - MGRS easting / northing inputs (5-digit normalisation in
+ *       `coords.js`; auto-jump from easting to northing on full input),
+ *     - long-press on selects to switch to free-text mode (longPressEdit),
+ *     - the «Готово» button — delegates to `generate.js`.
+ *
+ *   Config (drones, mission types, ammo, results, MGRS prefixes) is loaded
+ *   from `config.json` once on first init, merged with the user's
+ *   localStorage overrides, and applied to selects/datalists.
+ *
+ * UA:
+ *   Це «екран за замовчуванням» при запуску застосунку. Модуль звʼязує все,
+ *   що користувач бачить на формі:
+ *     - календар / тайм-пікери (автооновлення дати при переході через
+ *       північ),
+ *     - кнопки «Зараз» для часу зльоту / ураження,
+ *     - поле лічильника екіпажу (валідація — у `counter.js`),
+ *     - поля MGRS easting / northing (нормалізація 5 цифр — у `coords.js`;
+ *       авто-перехід з easting у northing при повному вводі),
+ *     - long-press на select-ах для переходу у режим вільного вводу
+ *       (longPressEdit),
+ *     - кнопка «Готово» — делегує у `generate.js`.
+ *
+ *   Конфіг (дрони, типи місій, боєприпаси, результати, префікси MGRS)
+ *   завантажується з `config.json` один раз при ініціалізації, зливається
+ *   з користувацькими перевизначеннями з localStorage і застосовується
+ *   до select/datalist.
+ *
  * @module screens/mainForm
  */
 
@@ -16,15 +49,24 @@ import {
 import { enableLongPressToEdit } from "../longPressEdit.js";
 import { generate } from "../generate.js";
 
-/** Tracks whether user has started typing in easting (to clear northing on new entry). */
-/** Відстежує, чи почав користувач ввод у easting (щоб очистити northing при новому вводі). */
+/**
+ * EN: Tracks whether the user has started typing in `easting`. When they
+ *     start fresh — we clear `northing` so two unrelated coordinates don't
+ *     stick together. Reset on each focus / clear.
+ * UA: Слідкує, чи почав користувач вводити у `easting`. Коли починає з
+ *     нуля — очищаємо `northing`, щоб дві несумісні координати не
+ *     "зліплялися". Скидається на focus / очищення.
+ */
 let eastingEditStarted = false;
 
+/** EN: Idempotency flag — `initMainFormScreen` runs only once. UA: Прапор ідемпотентності — `initMainFormScreen` виконується раз. */
 let initialized = false;
 
 /**
- * Initializes the main form screen once.
- * Ініціалізує головний екран форми (одноразово).
+ * EN: Initialises the main form screen — runs ONCE at boot from `app.js`.
+ *     Subsequent calls are no-ops thanks to the `initialized` flag.
+ * UA: Ініціалізує головний екран форми — виконується ОДИН раз при старті
+ *     з `app.js`. Наступні виклики нічого не роблять (прапор `initialized`).
  * @returns {Promise<void>}
  */
 export async function initMainFormScreen() {

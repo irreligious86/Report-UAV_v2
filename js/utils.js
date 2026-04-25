@@ -1,21 +1,32 @@
 /**
- * DOM helpers and small utilities (dates, time, status, textarea).
- * Вспомогательные функции DOM и утилиты (даты, время, статус, textarea).
+ * Tiny DOM / date / status helpers used everywhere.
+ *
+ * EN: This module is intentionally trivial — pure helpers, no domain logic.
+ *     If you find yourself adding business rules here, you probably want
+ *     `report-format.js` or `screens/*` instead.
+ * UA: Цей модуль свідомо тривіальний — лише допоміжні функції без домену.
+ *     Якщо тут зʼявляється бізнес-логіка, її місце, ймовірно, у
+ *     `report-format.js` або `screens/*`.
+ *
  * @module utils
  */
 
 /**
- * Returns the DOM element by id.
- * Возвращает элемент DOM по id.
- * @param {string} id - Element id. Идентификатор элемента.
+ * EN: Shorthand for `document.getElementById`. The whole codebase uses `$`
+ *     to read DOM nodes — keep it that way for grep-ability.
+ * UA: Скорочення для `document.getElementById`. У всьому коді DOM-вузли
+ *     читаються через `$` — лишаємо так заради зручного пошуку.
+ * @param {string} id
  * @returns {HTMLElement | null}
  */
 export const $ = (id) => document.getElementById(id);
 
 /**
- * Pads a number with leading zero to two digits (e.g. 5 → "05").
- * Дополняет число ведущим нулём до двух цифр (напр. 5 → "05").
- * @param {number} n - Number. Число.
+ * EN: Pads a number with a leading zero to two digits ("5" → "05").
+ *     Used by date / time formatters across the app.
+ * UA: Доповнює число провідним нулем до двох цифр («5» → «05»).
+ *     Використовують форматтери дати/часу по всьому застосунку.
+ * @param {number} n
  * @returns {string}
  */
 export function pad2(n) {
@@ -23,8 +34,10 @@ export function pad2(n) {
 }
 
 /**
- * Returns current time as "HH:MM" (24h).
- * Возвращает текущее время в формате "ЧЧ:ММ" (24ч).
+ * EN: Returns the current local time as "HH:MM" (24h). Used by the «Зараз»
+ *     button next to takeoff / impact time fields.
+ * UA: Повертає поточний локальний час у форматі «ГГ:ХХ» (24 год). Викликає
+ *     кнопка «Зараз» біля полів зльоту / ураження.
  * @returns {string}
  */
 export function nowTime() {
@@ -32,12 +45,25 @@ export function nowTime() {
   return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
-/** Останній календарний день («якір»), на який уже підлаштовано поле дати — щоб раз на нову добу оновити інтерфейс. */
+/**
+ * EN: sessionStorage anchor — the calendar day for which the date field
+ *     was last refreshed. We compare against today on each visibility /
+ *     screen change to detect midnight crossing.
+ * UA: Якір у sessionStorage — календарний день, для якого востаннє
+ *     оновлювали поле дати. Порівнюємо з today при кожній зміні
+ *     видимості / екрану — щоб ловити перехід через північ.
+ */
 const SESSION_DATE_ANCHOR_KEY = "uav_mission_date_calendar_anchor_v1";
 
 /**
- * Поточна календарна дата в часовому поясі пристрою (не UTC), формат YYYY-MM-DD.
- * toISOString().slice(0,10) дає UTC і біля півночі дає «вчора» — тому лише локальні getFullYear/Month/Date.
+ * EN: Today's date in the device's local timezone, formatted "YYYY-MM-DD".
+ *     We deliberately do NOT use `toISOString().slice(0, 10)` because that
+ *     converts to UTC and around midnight gives "yesterday" in eastern
+ *     timezones — which is wrong for a mission journal.
+ * UA: Сьогоднішня дата в локальному часовому поясі пристрою у форматі
+ *     «РРРР-ММ-ДД». Свідомо НЕ використовуємо `toISOString().slice(0,10)`
+ *     — біля півночі у східних поясах це дасть «вчора», що неправильно
+ *     для журналу місій.
  * @returns {string}
  */
 export function todayISO() {
@@ -46,8 +72,15 @@ export function todayISO() {
 }
 
 /**
- * Якщо настав новий календарний день або поле дати порожнє — підставляє сьогоднішню локальну дату.
- * Не чіпає дату, якщо користувач штучно вибрав інший день у межах тієї ж доби сесії (якір уже = сьогодні).
+ * EN: Refreshes the date picker only when a new calendar day has begun
+ *     (or the field was empty). If the user manually picked a different
+ *     day within the same session, we leave that choice intact —
+ *     `SESSION_DATE_ANCHOR_KEY` already equals today and the function
+ *     does nothing.
+ * UA: Оновлює поле дати тільки коли настав новий календарний день (або
+ *     поле порожнє). Якщо користувач у межах тієї самої сесії вручну
+ *     обрав іншу дату — лишаємо її, бо `SESSION_DATE_ANCHOR_KEY` вже
+ *     дорівнює сьогодні й функція нічого не робить.
  */
 export function refreshMissionDateForNewDay() {
   const today = todayISO();
@@ -67,10 +100,13 @@ export function refreshMissionDateForNewDay() {
 }
 
 /**
- * Converts ISO date "YYYY-MM-DD" to "DD.MM.YYYY".
- * Преобразует дату "ГГГГ-ММ-ДД" в "ДД.ММ.ГГГГ".
- * @param {string} iso - ISO date string. Строка даты в формате ISO.
- * @returns {string} Formatted date or empty string if invalid. Форматированная дата или пустая строка при неверном вводе.
+ * EN: Converts ISO date "YYYY-MM-DD" to human "DD.MM.YYYY". Returns "" on
+ *     malformed input — the caller decides how to render an empty date.
+ * UA: Конвертує ISO-дату «РРРР-ММ-ДД» у людський формат «ДД.ММ.РРРР».
+ *     Повертає "", коли ввід некоректний — викликач сам вирішує, як
+ *     показати порожню дату.
+ * @param {string} iso
+ * @returns {string}
  */
 export function isoToDDMMYYYY(iso) {
   if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
@@ -79,9 +115,11 @@ export function isoToDDMMYYYY(iso) {
 }
 
 /**
- * Sets the status message in the #status element.
- * Устанавливает текст статуса в элементе #status.
- * @param {string} msg - Message. Сообщение.
+ * EN: Writes a short status string into `#status` (clears on empty input).
+ *     Used as a single-line notification area on the form screen.
+ * UA: Пише короткий рядок статусу у `#status` (на порожній вхід — очищає).
+ *     Слугує однорядковою областю сповіщень на екрані форми.
+ * @param {string} msg
  */
 export function setStatus(msg) {
   const el = $("status");
@@ -89,9 +127,13 @@ export function setStatus(msg) {
 }
 
 /**
- * Adjusts textarea height to fit its content (no scrollbar).
- * Подстраивает высоту textarea под содержимое (без полосы прокрутки).
- * @param {HTMLTextAreaElement | null} el - Textarea element. Элемент textarea.
+ * EN: Resizes a textarea to fit its content (no scrollbar). Called once
+ *     after building the canonical report text into `#output` so the
+ *     entire report is visible without scrolling.
+ * UA: Підлаштовує висоту textarea під вміст (без смуги прокрутки).
+ *     Викликається після запису канонічного тексту у `#output` — щоб
+ *     увесь звіт було видно без прокрутки.
+ * @param {HTMLTextAreaElement | null} el
  */
 export function autosizeTextarea(el) {
   if (!el) return;

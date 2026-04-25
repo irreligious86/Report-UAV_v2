@@ -1,6 +1,51 @@
 /**
- * Settings screen: editing local lists for selects/datalists.
- * Екран налаштувань: редагування локальних списків для select/datalist.
+ * Settings screen — editor for local list overrides.
+ *
+ * EN:
+ *   This screen lets the user customise the dropdown contents on the main
+ *   form (drones, mission types, ammo, results, MGRS prefixes) without
+ *   editing `config.json`. Changes are stored in localStorage as
+ *   "overrides" — the runtime then merges base config + overrides and
+ *   feeds the result to `screens/mainForm.js` selects/datalists.
+ *
+ *   UI:
+ *     - a tab strip — one tab per list,
+ *     - a sortable `<ul>` of the active list (drag handle on each row,
+ *       delete button on the right),
+ *     - an "add" input at the bottom,
+ *     - a "save" button (overrides are also saved on every individual
+ *       change; the button is mostly a UX confirmation cue).
+ *
+ *   Drag-and-drop is provided by Sortable.js (loaded from a CDN in
+ *   `index.html`). On drop we read the new order, store it as an
+ *   override, and re-render the list.
+ *
+ *   Note: Google Sheets integration USED to live here in early versions
+ *   and was extracted into `screens/data.js`. This module is purely about
+ *   the field-list editor.
+ *
+ * UA:
+ *   Екран дозволяє користувачу налаштувати вміст випадаючих списків
+ *   головної форми (дрони, типи місій, боєприпаси, результати, префікси
+ *   MGRS) без редагування `config.json`. Зміни зберігаються у localStorage
+ *   як «перевизначення» — у рантаймі зливаються з базовим конфігом і
+ *   подаються у select/datalist головної форми.
+ *
+ *   UI:
+ *     - смуга вкладок — одна вкладка на список,
+ *     - сортовний `<ul>` активного списку (drag-ручка ліворуч, кнопка
+ *       видалення праворуч),
+ *     - поле «додати» унизу,
+ *     - кнопка «зберегти» (перевизначення зберігаються і на кожній
+ *       окремій зміні; ця кнопка — переважно UX-сигнал «збережено»).
+ *
+ *   Drag-and-drop реалізує Sortable.js (підключається з CDN у
+ *   `index.html`). На drop читаємо новий порядок, зберігаємо як
+ *   перевизначення і перемальовуємо список.
+ *
+ *   Примітка: Google Sheets-інтеграція раніше була тут і була винесена
+ *   у `screens/data.js`. Цей модуль — лише про редактор списків.
+ *
  * @module screens/settings
  */
 

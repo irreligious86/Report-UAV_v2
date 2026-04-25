@@ -1,5 +1,66 @@
 /**
- * Journal & statistics: structured reports, sync actions, field-based stats.
+ * Journal & statistics screen — list, KPIs, edit dialog, sync actions.
+ *
+ * EN:
+ *   This screen has two tabs ("Статистика" and "Журнал") that share the
+ *   same period filter and search box.
+ *
+ *   What it does:
+ *     - reads all reports via `report-actions.listReports`,
+ *     - filters by the saved period (from/to date and time) and the
+ *       search query (in the canonical text),
+ *     - renders the cards on the "Журнал" tab and the textual summary +
+ *       KPI tiles on the "Статистика" tab,
+ *     - each card has action icons whose set depends on the report's
+ *       `syncStatus`:
+ *         DRAFT   → Send / Edit / Schedule
+ *         SCHEDULED → Cancel / Edit
+ *         QUEUED / SENDING → Send-now / Cancel-queue
+ *         SENT    → Correct / Resync
+ *         RESYNC_REQUIRED → Send-changes / Edit
+ *         ERROR   → Retry / Edit
+ *         LOCKED  → Correct
+ *     - all stats live in `journal-stats.js` (extracted module) so this
+ *       file stays focused on UI wiring,
+ *     - subscribes to the global `reportsUpdated` event so the screen
+ *       reflects external changes (sync drains, imports, edits).
+ *
+ *   Filtering & timestamps:
+ *     `filters.getImpactTimestampForReport` returns the mission impact
+ *     timestamp from STRUCTURED `fields.date + fields.impact`, falling
+ *     back to `createdAt`. Reports without enough info to build a
+ *     timestamp are excluded from the period filter on purpose.
+ *
+ * UA:
+ *   На цьому екрані дві вкладки («Статистика» і «Журнал») із спільним
+ *   фільтром періоду та пошуковим полем.
+ *
+ *   Що робить:
+ *     - читає всі звіти через `report-actions.listReports`,
+ *     - фільтрує за збереженим періодом (дата/час від/до) і пошуковим
+ *       запитом (по канонічному тексту),
+ *     - малює картки на вкладці «Журнал» і текстове зведення + плитки
+ *       KPI на «Статистиці»,
+ *     - на кожній картці — набір іконок-дій, що залежить від
+ *       `syncStatus` звіту:
+ *         DRAFT   → Надіслати / Редагувати / Запланувати
+ *         SCHEDULED → Скасувати / Редагувати
+ *         QUEUED / SENDING → Надіслати зараз / Скасувати чергу
+ *         SENT    → Виправити / Resync
+ *         RESYNC_REQUIRED → Надіслати зміни / Редагувати
+ *         ERROR   → Повторити / Редагувати
+ *         LOCKED  → Виправити
+ *     - вся статистика — у `journal-stats.js` (виокремлений модуль), щоб
+ *       цей файл лишався UI-орієнтованим,
+ *     - підписаний на глобальну подію `reportsUpdated` — щоб реагувати
+ *       на зовнішні зміни (drain черги, імпорт, редагування).
+ *
+ *   Фільтрація і timestamp:
+ *     `filters.getImpactTimestampForReport` дає момент ураження зі
+ *     СТРУКТУРНИХ `fields.date + fields.impact`, із резервом на
+ *     `createdAt`. Звіти без достатньої інформації для timestamp свідомо
+ *     виключаються з фільтра періоду.
+ *
  * @module screens/journal
  */
 

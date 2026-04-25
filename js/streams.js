@@ -1,15 +1,33 @@
 /**
- * Storage helpers for known stream values.
- * Допоміжні функції для зберігання відомих значень поля «Стрім».
+ * Persistence for the "Стрім" field — remembered values for autocomplete.
+ *
+ * EN:
+ *   The `Стрім` field on the main form accepts free text (typically a URL).
+ *   To save typing on repeated mission days we accumulate every saved
+ *   value into localStorage; the Settings screen exposes them so the user
+ *   can later pick from the list.
+ *   The placeholder "---" is never stored — that is the "no stream" marker.
+ *
+ * UA:
+ *   Поле «Стрім» на головній формі приймає вільний текст (зазвичай URL).
+ *   Щоб не вводити те саме знов і знов, ми накопичуємо кожне збережене
+ *   значення у localStorage; екран «Налаштування» показує їх — тоді
+ *   користувач може обрати зі списку.
+ *   Плейсхолдер «---» НЕ зберігається — це маркер «без стріму».
+ *
  * @module streams
  */
 
 import { STORAGE_KEY_STREAMS } from "./constants.js";
 
 /**
- * Loads known stream values from localStorage.
- * Завантажує відомі значення «Стрім» з localStorage.
- * @returns {string[]} Array of unique stream strings.
+ * EN: Loads remembered stream values from localStorage. Garbage values
+ *     (non-array, empty strings) are filtered out so callers can trust
+ *     the result is a clean array of strings.
+ * UA: Завантажує запамʼятовані значення «Стрім» із localStorage.
+ *     Сміттєві значення (не-масив, порожні рядки) відфільтровуються —
+ *     викликач отримує чистий масив рядків.
+ * @returns {string[]}
  */
 export function loadStreams() {
   try {
@@ -22,8 +40,10 @@ export function loadStreams() {
 }
 
 /**
- * Saves stream values to localStorage.
- * Зберігає значення «Стрім» у localStorage.
+ * EN: Saves the stream list to localStorage. Empty list REMOVES the key
+ *     (so reading later yields an empty default).
+ * UA: Зберігає список значень «Стрім» у localStorage. Порожній список
+ *     ВИДАЛЯЄ ключ (читання пізніше дасть порожнє значення).
  * @param {string[]} items
  */
 export function saveStreams(items) {
@@ -36,8 +56,12 @@ export function saveStreams(items) {
 }
 
 /**
- * Adds a single stream value if it does not exist yet.
- * Додає одне значення «Стрім», якщо його ще немає у списку.
+ * EN: Adds a single stream value if it isn't already known. Called from
+ *     `generate.js` after each successful save. The placeholder "---" is
+ *     ignored on purpose — it is the "no value" marker.
+ * UA: Додає одне значення «Стрім», якщо його ще немає у списку.
+ *     Викликає `generate.js` після кожного успішного збереження.
+ *     Плейсхолдер «---» ігнорується навмисно — це маркер «без значення».
  * @param {string} value
  */
 export function addStreamValue(value) {
