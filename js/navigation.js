@@ -7,6 +7,7 @@
 import { $, refreshMissionDateForNewDay } from "./utils.js";
 import { onMapScreenShown, resetMapLayout } from "./screens/map.js";
 import { resetJournalListLayout } from "./screens/journal.js";
+import { LONG_PRESS_MS } from "./constants.js";
 
 /** Known screen ids (order matches the menu). */
 const SCREEN_IDS = ["main", "journal", "data", "map", "settings", "help"];
@@ -19,9 +20,6 @@ let longPressTimer = null;
 
 /** Cached menu root element. */
 let menuElement = null;
-
-/** Milliseconds required to treat press as long-press. */
-const LONG_PRESS_MS = 450;
 
 /**
  * Initializes navigation: long-press on title and menu interactions.

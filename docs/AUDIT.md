@@ -1,9 +1,9 @@
 # AUDIT — Report UAV v2 / Аудит проєкту
 
-_Дата аудиту: 2026-04-16. Scope: 33 JS-файли (~5700 LOC) + index.html + sw.js + config/docs/tools._
+_Перший аудит: 2026-04-16 (рефакторинг v21 → v22). Оновлено: 2026-04-16 (консолідація доків, code cleanup → v23)._
 
-EN: This document captures the state of the codebase **before** the refactor committed alongside it, and records the plan executed. Future contributors can use it as the "why" map.
-UA: Документ фіксує стан коду **до** проведеного рефакторингу та план, який було виконано. Слугує орієнтиром "чому так зроблено" для наступних розробників.
+EN: History of refactoring decisions and executed changes. Use as the "why" reference.
+UA: Історія рішень рефакторингу та виконаних змін. Використовуйте як довідник "чому так зроблено".
 
 ---
 
@@ -67,7 +67,7 @@ UA: Функції нормалізації дати/часу були реал�
 - `js/screens/journal.js` (761 LOC) і `js/screens/map.js` (595 LOC) — залишені як є в цьому раунді (ризик зламати рендер дуже високий і юніт-тестів немає). Додано коментарі-маркери із планом виокремлення.
 
 **Event bus:**
-- `events.js` продовжує слати обидві події — `reportsChanged` і `reportsUpdated`. Код споживає тільки `reportsUpdated`, але обидві згадані в `docs/AI-CONTEXT.md` і в `docs/google-sheets-sync-decomposition.md`. Залишив обидві для зворотної сумісності з зовнішніми інтеграціями; документовано в JSDoc.
+- `events.js` продовжує слати обидві події — `reportsChanged` і `reportsUpdated`. Код споживає тільки `reportsUpdated`, але обидві згадані в `docs/AI-CONTEXT.md` і в `docs/google-sheets-sync-tz.md`. Залишив обидві для зворотної сумісності з зовнішніми інтеграціями; документовано в JSDoc.
 - `screens/data.js` двічі дублював `window.dispatchEvent(new Event("reportsChanged"))` і `reportsUpdated` напряму, минаючи `emitReportsChanged()`. Замінено на виклик `emitReportsChanged()`.
 
 **IDB boilerplate:**
@@ -141,10 +141,33 @@ _Свідомо НЕ зроблено в цьому раунді, бо потр�
 
 ---
 
-## 6. Як перевірити (manual QA checklist)
+## 6. Раунд 2: консолідація документації та code cleanup (v22 → v23)
+
+### Видалено файли
+- `docs/sprint1-indexeddb-implementation-plan.md` — 6 рядків заглушки, нульова цінність.
+- `google-script.txt` — містив реальні API-ключі в репо.
+- `docs/ARCHITECTURE.md` — дублював `AI-CONTEXT.md` слабшою формою.
+- `docs/google-sheets-sync-decomposition.md` — таблиця влита в `google-sheets-sync-tz.md` (Додаток B).
+
+### Код
+- **`pad2()` дублікат у `filters.js`** — видалено, імпортується з `utils.js`.
+- **Long-press таймер** — уніфіковано: `LONG_PRESS_MS = 500` у `constants.js`, імпортується в `navigation.js` і `longPressEdit.js` (раніше 450 і 600 ms в різних місцях).
+- **`journal-stats.js`** — виокремлено `computeStats`, `buildSummaryText`, `updateKPI` з `screens/journal.js` (703 рядки замість 761).
+- **`constants.js`** — відновлено з git (файл був обрізаний на диску).
+- **`sw.js`** — відновлено з git (файл був обрізаний), додано `journal-stats.js`, bump → `v23`.
+
+### Документація
+- `AI-CONTEXT.md` — єдина точка входу для ІІ; додано boot order, масштабування, «Чого НЕ робити», «Типові задачі».
+- `google-sheets-sync-tz.md` — додано Додаток B (таблицю з decomposition).
+- `AUDIT.md` — оновлено для двох раундів.
+- `README.md` — оновлено дерево структури, прибрано мертві посилання.
+
+---
+
+## 7. Як перевірити (manual QA checklist)
 
 1. `npm run verify` — має пройти.
-2. Відкрити PWA у браузері; дочекатись що Service Worker активується з CACHE_NAME=v21.
+2. Відкрити PWA у браузері; дочекатись що Service Worker активується з CACHE_NAME=v23.
 3. Створити новий звіт кнопкою «Готово» — має скопіювати в буфер і з'явитися в журналі.
 4. Відкрити Журнал — KPI і картки мають відображатися.
 5. Відкрити Мапу — мітки мають з'явитися.

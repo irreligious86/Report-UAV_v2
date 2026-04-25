@@ -59,7 +59,7 @@ const MAX_DRAIN_PER_RUN = 500;
  * @returns {Promise<void>}
  */
 export async function processSyncQueue() {
-  drainChain = drainChain.then(_drain);
+  drainChain = drainChain.then(drain_);
   return drainChain;
 }
 
@@ -68,7 +68,7 @@ export async function processSyncQueue() {
  * UA: Внутрішній drain-цикл — окремо, щоб його не викликали напряму.
  * @returns {Promise<void>}
  */
-async function _drain() {
+async function drain_() {
   for (let i = 0; i < MAX_DRAIN_PER_RUN; i++) {
     const didWork = await processOneQueueItem();
     if (!didWork) break;

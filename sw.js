@@ -7,7 +7,7 @@
  * UA: У `ASSETS` мають бути всі власні `.js`, які імпортує застосунок. Якщо
  *     модуль відсутній — офлайн може зламатися. Підвищуйте `CACHE_NAME` при змінах.
  */
-const CACHE_NAME = 'uav-report-v22';
+const CACHE_NAME = 'uav-report-v23';
 const ASSETS = [
   './',
   './index.html',
@@ -46,6 +46,7 @@ const ASSETS = [
   './js/navigation.js',
   './js/pwa-install.js',
   './js/result-mapping.js',
+  './js/journal-stats.js',
   './js/streams.js',
   './js/events.js',
   './js/crypto/crypto.js',

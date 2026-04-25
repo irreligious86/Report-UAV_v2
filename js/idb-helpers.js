@@ -56,8 +56,20 @@ export async function runReadwrite(storeNames, cb) {
 }
 
 /**
+ * EN: Default timeout for IDB transactions (ms). If a transaction does not
+ *     complete within this time, the promise rejects and the tx is aborted.
+ *     Prevents the app from hanging indefinitely on stuck transactions.
+ * UA: Тайм-аут для IDB-транзакцій (мс). Якщо транзакція не завершиться
+ *     за цей час, promise зареджектиться і транзакцію буде перервано.
+ *     Запобігає зависанню застосунку на "мертвих" транзакціях.
+ */
+const TX_TIMEOUT_MS = 10_000;
+
+/**
  * EN: Internal executor shared by read-only and read-write helpers.
+ *     Includes a safety timeout that aborts the transaction if it hangs.
  * UA: Спільна реалізація для readonly/readwrite helper-ів.
+ *     Включає захисний тайм-аут, що перериває транзакцію при зависанні.
  * @template T
  * @param {IDBDatabase} db
  * @param {string|string[]} storeNames
@@ -75,6 +87,22 @@ function runTx(db, storeNames, mode, cb) {
       return;
     }
 
+    let settled = false;
+    const settle = (fn, value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      fn(value);
+    };
+
+    /* EN: Safety net — abort transaction if it hangs longer than TX_TIMEOUT_MS.
+       UA: Захисна сітка — переривання транзакції при зависанні. */
+    const timer = setTimeout(() => {
+      if (settled) return;
+      try { tx.abort(); } catch { /* noop */ }
+      settle(reject, new Error(`IDB transaction timeout (${TX_TIMEOUT_MS}ms)`));
+    }, TX_TIMEOUT_MS);
+
     /** @type {T} */
     let result;
     let captured = false;
@@ -91,7 +119,7 @@ function runTx(db, storeNames, mode, cb) {
           },
           (err) => {
             try { tx.abort(); } catch { /* noop */ }
-            reject(err);
+            settle(reject, err);
           },
         );
       } else {
@@ -100,18 +128,20 @@ function runTx(db, storeNames, mode, cb) {
       }
     } catch (err) {
       try { tx.abort(); } catch { /* noop */ }
-      reject(err);
+      settle(reject, err);
       return;
     }
 
     tx.oncomplete = () => {
-      if (captured) resolve(result);
+      if (captured) settle(resolve, result);
       /* EN: async callback may still be pending — resolve in next microtask.
          UA: async callback може ще не завершитися — чекаємо наступний мікротик. */
-      else queueMicrotask(() => resolve(result));
+      else queueMicrotask(() => settle(resolve, result));
     };
-    tx.onerror = () => reject(tx.error || new Error("IDB transaction failed"));
-    tx.onabort = () => reject(tx.error || new Error("IDB transaction aborted"));
+    tx.onerror = () => settle(reject, tx.error || new Error("IDB transaction failed"));
+    tx.onabort = () => {
+      if (!settled) settle(reject, tx.error || new Error("IDB transaction aborted"));
+    };
   });
 }
 

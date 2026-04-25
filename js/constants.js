@@ -31,3 +31,6 @@ export const STORAGE_KEY_MAP_BASEMAP = "uav_map_basemap_label_v1";
 /** EN: Per-browser id for sync / Sheets (stable in localStorage). UA: Стабільний id пристрою для синхронізації. */
 export const STORAGE_KEY_DEVICE_ID = "uav_device_id_v1";
 
+/** EN: Hold duration (ms) to trigger long-press actions (title menu, select→input edit). UA: Тривалість утримання (мс) для long-press дій (меню заголовка, редагування select). */
+export const LONG_PRESS_MS = 500;
+

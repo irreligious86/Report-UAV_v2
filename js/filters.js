@@ -21,6 +21,7 @@ import {
   combineDateAndTime,
   normalizeDateToISO as _normalizeDateToISO,
 } from "./date-utils.js";
+import { pad2 } from "./utils.js";
 import * as logger from "./logger.js";
 
 /** EN: localStorage key for the saved filter. / UA: Ключ у localStorage для збереженого фільтра. */
@@ -33,14 +34,6 @@ const STORAGE_KEY_PERIOD_FILTER = "uav_period_filter_v1";
  * @property {string} fromTime — EN: "HH:MM". / UA: "ГГ:ХХ".
  * @property {string} toTime
  */
-
-/**
- * EN: Zero-pads a one-digit number. Kept local to avoid cross-module churn.
- * UA: Доповнює одну цифру провідним нулем. Локально, щоб не розтягувати залежності.
- * @param {number} n
- * @returns {string}
- */
-const pad2 = (n) => String(n).padStart(2, "0");
 
 /**
  * EN: Returns the default filter — the entire current month 00:00–23:59.
