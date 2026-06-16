@@ -11,10 +11,10 @@
  *   text. The text is only for humans and clipboard.
  *
  *   Field semantics (single line each, since the user types them by hand):
- *     crew         — call-sign string (e.g. "Дакар"). Free text, trimmed.
+ *     crew         — call-sign string. Free text, trimmed.
  *     crewCounter  — sortie counter inside the day, integer 1..25 or null
  *                    (null = the user did not use the counter for this
- *                    sortie). Used for ordering and as "Дакар (3)" suffix.
+ *                    sortie). Used for ordering and as "Name (3)" suffix.
  *     date         — mission date in ISO "YYYY-MM-DD" (local timezone of
  *                    the device). NEVER UTC — see `utils.todayISO`.
  *     drone        — UAV name from the list or free text.
@@ -46,11 +46,11 @@
  *   людей і буфера обміну.
  *
  *   Семантика полів (один рядок кожне — бо користувач вводить їх вручну):
- *     crew         — позивний (напр. «Дакар»). Вільний текст, тримається.
+ *     crew         — позивний. Вільний текст, тримається.
  *     crewCounter  — лічильник вильоту в межах дня, ціле 1..25 або null
  *                    (null = користувач не використовував лічильник для
  *                    цього вильоту). Використовується для сортування і як
- *                    суфікс «Дакар (3)».
+ *                    суфікс «Позивний (3)».
  *     date         — дата місії у ISO «YYYY-MM-DD» (локальний пояс
  *                    пристрою). НЕ UTC — див. `utils.todayISO`.
  *     drone        — назва БПЛА зі списку або довільний текст.
@@ -78,7 +78,7 @@
 
 import { STREAM_PLACEHOLDER } from "./constants.js";
 import { $, isoToDDMMYYYY } from "./utils.js";
-import { getCrewFallback, parseCounterRaw } from "./counter.js";
+import { parseCounterRaw } from "./counter.js";
 import { buildCoordsOrError } from "./coords.js";
 
 /**
@@ -167,7 +167,7 @@ export function normalizeFields(fields) {
 /**
  * EN: Builds the canonical multi-line report text from `fields`. Layout:
  *
- *     Дакар (3)
+ *     Альфа (3)
  *     15.03.2024
  *     Борт: Mavic 3
  *     Характер: Ударна
@@ -188,7 +188,7 @@ export function normalizeFields(fields) {
  *
  * UA: Будує канонічний багаторядковий текст звіту з `fields`. Розкладка:
  *
- *     Дакар (3)
+ *     Альфа (3)
  *     15.03.2024
  *     Борт: Mavic 3
  *     Характер: Ударна
@@ -220,25 +220,20 @@ export function buildReportText(fields) {
 
 /**
  * EN: Reads the main report form (`#screen-main`) into structured fields.
- *     - Defaults empty `crew` to "Дакар" so a forgetful user still has
- *       something readable in the text.
- *     - Validates coordinates via `buildCoordsOrError` — returns null when
- *       MGRS coords are not exactly 5+5 digits, the form will already
- *       have shown the inline error.
- *     - Counter is parsed by `parseCounterRaw`; empty input → null.
+ *     Validates coordinates via `buildCoordsOrError` — returns null when
+ *     MGRS coords are not exactly 5+5 digits, the form will already
+ *     have shown the inline error.
+ *     Counter is parsed by `parseCounterRaw`; empty input → null.
  *     The caller (`generate.js`) treats `null` as "abort generation".
  * UA: Зчитує головну форму звіту (`#screen-main`) у структурні поля.
- *     - Якщо `crew` порожнє — підставляє «Дакар», щоб у тексті лишалось
- *       щось читабельне.
- *     - Перевіряє координати через `buildCoordsOrError` — повертає null,
- *       коли MGRS не точно 5+5 цифр; форма вже показала помилку поряд.
- *     - Лічильник розбирає `parseCounterRaw`; порожнє → null.
+ *     Перевіряє координати через `buildCoordsOrError` — повертає null,
+ *     коли MGRS не точно 5+5 цифр; форма вже показала помилку поряд.
+ *     Лічильник розбирає `parseCounterRaw`; порожнє → null.
  *     Викликач (`generate.js`) трактує `null` як «припинити генерацію».
  * @returns {ReportFields|null}
  */
 export function collectFieldsFromMainForm() {
   const crewInput = $("crew");
-  if (crewInput && crewInput.value === "") crewInput.value = getCrewFallback();
   const coords = buildCoordsOrError();
   if (!coords) return null;
 

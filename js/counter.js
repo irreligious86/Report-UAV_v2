@@ -1,31 +1,15 @@
 /**
- * Crew sortie counter — parsing, persistence, sanitisation.
+ * Crew callsign and sortie counter — parsing, persistence, sanitisation.
  *
  * EN:
- *   The counter is the small "1..25" number shown next to the crew name
- *   ("Дакар (3)"). It tracks how many sorties this crew has flown today
- *   and is auto-incremented after each successful «Готово».
- *
- *   Persistence: `localStorage[STORAGE_KEY_COUNTER]`. Writing null /
- *   missing value REMOVES the key — that is how the user explicitly
- *   "turns off" the counter for the next sortie.
- *
- *   Range: 1..25 (matches the input's `maxlength=2` and the visible cap
- *   in the UI). Values outside that range are rejected with `ok: false`
- *   so the inline error appears.
+ *   `#crew` — last-used callsign in `localStorage[STORAGE_KEY_CREW_NAME]`;
+ *   persisted on every input (like MGRS prefix / counter).
+ *   `#crewCounter` — sortie number 1..25 in `STORAGE_KEY_COUNTER`.
  *
  * UA:
- *   Лічильник — це невелике число «1..25» поряд із позивним
- *   («Дакар (3)»). Показує, скільки вильотів сьогодні в екіпажу;
- *   автоматично росте після кожного успішного «Готово».
- *
- *   Збереження: `localStorage[STORAGE_KEY_COUNTER]`. Запис null /
- *   відсутність значення ВИДАЛЯЄ ключ — так користувач явно «вимикає»
- *   лічильник для наступного вильоту.
- *
- *   Діапазон: 1..25 (збігається з `maxlength=2` поля та UI-обмеженням).
- *   Значення поза діапазоном відхиляються (`ok: false`), тоді біля поля
- *   зʼявляється помилка.
+ *   `#crew` — останній позивний у `localStorage[STORAGE_KEY_CREW_NAME]`;
+ *   зберігається при кожному вводі (як префікс MGRS / лічильник).
+ *   `#crewCounter` — номер вильоту 1..25 у `STORAGE_KEY_COUNTER`.
  *
  * @module counter
  */
@@ -33,9 +17,6 @@
 import { $ } from "./utils.js";
 import { STORAGE_KEY_COUNTER, STORAGE_KEY_CREW_NAME } from "./constants.js";
 import { updateEmptyHighlights } from "./config.js";
-
-/** EN: Default callsign when nothing is stored yet. UA: Позивний за замовчуванням, якщо ще нічого не збережено. */
-const DEFAULT_CREW_NAME = "Дакар";
 
 /**
  * EN: Parses raw counter input. Three return shapes:
@@ -92,18 +73,18 @@ export function loadCounter() {
 }
 
 /**
- * EN: Returns the saved crew callsign, or {@link DEFAULT_CREW_NAME} if none.
- * UA: Повертає збережений позивний екіпажу або {@link DEFAULT_CREW_NAME}.
- * @returns {string}
+ * EN: Persists crew callsign; empty string REMOVES the key.
+ * UA: Зберігає позивний; порожній рядок ВИДАЛЯЄ ключ.
+ * @param {string} name
  */
-export function getCrewFallback() {
+export function saveCrewName(name) {
+  const trimmed = String(name ?? "").trim();
   try {
-    const stored = localStorage.getItem(STORAGE_KEY_CREW_NAME);
-    if (stored && stored.trim()) return stored.trim();
+    if (!trimmed) localStorage.removeItem(STORAGE_KEY_CREW_NAME);
+    else localStorage.setItem(STORAGE_KEY_CREW_NAME, trimmed);
   } catch {
     /* localStorage unavailable */
   }
-  return DEFAULT_CREW_NAME;
 }
 
 /**
@@ -122,18 +103,14 @@ export function loadCrewName() {
 }
 
 /**
- * EN: Persists the crew callsign after a successful report.
- * UA: Зберігає позивний екіпажу після успішного звіту.
- * @param {string} name
+ * EN: `oninput` handler for `#crew` — saves callsign on every change.
+ * UA: Обробник `oninput` для `#crew` — зберігає позивний при кожній зміні.
  */
-export function saveCrewName(name) {
-  const trimmed = String(name || "").trim();
-  if (!trimmed) return;
-  try {
-    localStorage.setItem(STORAGE_KEY_CREW_NAME, trimmed);
-  } catch {
-    /* localStorage unavailable */
-  }
+export function persistCrewField() {
+  const el = $("crew");
+  if (!el) return;
+  saveCrewName(el.value);
+  updateEmptyHighlights();
 }
 
 /**
