@@ -38,7 +38,7 @@
  */
 
 import { $, nowTime, setStatus, refreshMissionDateForNewDay } from "../utils.js";
-import { loadCounter, loadCrewName, sanitizeCounterField } from "../counter.js";
+import { loadCounter, loadCrewName, persistCrewField, sanitizeCounterField } from "../counter.js";
 import { normalize5 } from "../coords.js";
 import {
   loadConfig,
@@ -86,6 +86,11 @@ export async function initMainFormScreen() {
 
   loadCounter();
   loadCrewName();
+
+  const crewInput = $("crew");
+  if (crewInput) {
+    crewInput.oninput = persistCrewField;
+  }
 
   const btnNowTakeoff = $("btnNowTakeoff");
   if (btnNowTakeoff) {
