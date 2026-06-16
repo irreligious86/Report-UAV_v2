@@ -83,6 +83,7 @@ import { collectFieldsFromMainForm, buildReportText } from "./report-format.js";
 import { copyText } from "./clipboard.js";
 import { updateEmptyHighlights } from "./config.js";
 import { addStreamValue } from "./streams.js";
+import { syncNativePickerFromDisplay } from "./ui-native-datetime.js";
 
 /**
  * EN: Serialisation lock — the second «Готово» tap queues behind the first,
@@ -140,6 +141,7 @@ async function doGenerate_() {
   const dp = $("datePicker");
   if (dp instanceof HTMLInputElement && !String(dp.value || "").trim()) {
     dp.value = isoToDDMMYYYY(todayISO());
+    syncNativePickerFromDisplay(dp);
   }
 
   // Collect fields — returns null if coords are invalid (error shown inside)
@@ -167,7 +169,10 @@ async function doGenerate_() {
   // Advance counter and reset date AFTER successful save
   advanceCrewCounterAfterSnapshot_(fields);
   const dpAfter = $("datePicker");
-  if (dpAfter instanceof HTMLInputElement) dpAfter.value = isoToDDMMYYYY(todayISO());
+  if (dpAfter instanceof HTMLInputElement) {
+    dpAfter.value = isoToDDMMYYYY(todayISO());
+    syncNativePickerFromDisplay(dpAfter);
+  }
 
   updateEmptyHighlights();
 }

@@ -67,7 +67,7 @@ autocomplete="off"
 
 <label>
 Дата:
-<input type="text" id="datePicker" class="ui-date" inputmode="numeric" placeholder="ДД.ММ.РРРР" maxlength="10" autocomplete="off" spellcheck="false" data-lpignore="true" data-form-type="other"/>
+<input type="text" id="datePicker" class="ui-date ui-datetime-display" placeholder="ДД.ММ.РРРР" autocomplete="off" spellcheck="false" data-lpignore="true" data-form-type="other"/>
 </label>
 
 <label>
@@ -86,7 +86,7 @@ autocomplete="off"
 Час зльоту:
 
 <div class="row">
-<input type="text" id="takeoff" class="ui-time" inputmode="numeric" placeholder="ГГ:ХХ" maxlength="5" autocomplete="off"/>
+<input type="text" id="takeoff" class="ui-time ui-datetime-display" placeholder="ГГ:ХХ" autocomplete="off"/>
 <button class="btn" type="button" id="btnNowTakeoff">Зараз</button>
 </div>
 </label>
@@ -95,7 +95,7 @@ autocomplete="off"
 Час ураження/втрати:
 
 <div class="row">
-<input type="text" id="impact" class="ui-time" inputmode="numeric" placeholder="ГГ:ХХ" maxlength="5" autocomplete="off"/>
+<input type="text" id="impact" class="ui-time ui-datetime-display" placeholder="ГГ:ХХ" autocomplete="off"/>
 <button class="btn" type="button" id="btnNowImpact">Зараз</button>
 </div>
 </label>
@@ -175,13 +175,13 @@ readonly></textarea>
 Період:
   <div class="journal-period-block">
     <div class="row">
-      <input type="text" id="journalFrom" class="ui-date" inputmode="numeric" placeholder="ДД.ММ.РРРР" maxlength="10" autocomplete="off"/>
-      <input type="text" id="journalTo" class="ui-date" inputmode="numeric" placeholder="ДД.ММ.РРРР" maxlength="10" autocomplete="off"/>
+      <input type="text" id="journalFrom" class="ui-date ui-datetime-display" placeholder="ДД.ММ.РРРР" autocomplete="off"/>
+      <input type="text" id="journalTo" class="ui-date ui-datetime-display" placeholder="ДД.ММ.РРРР" autocomplete="off"/>
     </div>
 
     <div class="row" style="margin-top:10px;">
-      <input type="text" id="journalTimeFrom" class="ui-time" inputmode="numeric" placeholder="ГГ:ХХ" maxlength="5" autocomplete="off"/>
-      <input type="text" id="journalTimeTo" class="ui-time" inputmode="numeric" placeholder="ГГ:ХХ" maxlength="5" autocomplete="off"/>
+      <input type="text" id="journalTimeFrom" class="ui-time ui-datetime-display" placeholder="ГГ:ХХ" autocomplete="off"/>
+      <input type="text" id="journalTimeTo" class="ui-time ui-datetime-display" placeholder="ГГ:ХХ" autocomplete="off"/>
     </div>
   </div>
 </label>

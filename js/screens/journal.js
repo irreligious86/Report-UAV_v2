@@ -65,13 +65,12 @@
  */
 
 import { $, isoToDDMMYYYY, setStatus } from "../utils.js";
+import { formatUiDateFromIso, parseUiDateToIso, formatUiTime } from "../date-utils.js";
 import {
-  attachUiDateInput,
-  attachUiTimeInput,
-  formatUiDateFromIso,
-  parseUiDateToIso,
-  formatUiTime,
-} from "../date-utils.js";
+  bindNativeDatePicker,
+  bindNativeTimePicker,
+  syncNativePickerFromDisplay,
+} from "../ui-native-datetime.js";
 import { copyText } from "../clipboard.js";
 import {
   listReports,
@@ -266,19 +265,23 @@ function renderEditFields(container, report) {
     const v = f[def.key];
     if (def.type === "date") {
       input.classList.add("ui-date");
-      input.inputMode = "numeric";
       input.placeholder = "ДД.ММ.РРРР";
-      input.maxLength = 10;
       const raw = v != null && v !== undefined ? String(v) : "";
       input.value = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? formatUiDateFromIso(raw) : raw;
-      attachUiDateInput(input);
+      wrap.appendChild(lab);
+      wrap.appendChild(input);
+      container.appendChild(wrap);
+      bindNativeDatePicker(input);
+      continue;
     } else if (def.type === "time") {
       input.classList.add("ui-time");
-      input.inputMode = "numeric";
       input.placeholder = "ГГ:ХХ";
-      input.maxLength = 5;
       input.value = formatUiTime(v != null && v !== undefined ? String(v) : "") || (v != null ? String(v) : "");
-      attachUiTimeInput(input);
+      wrap.appendChild(lab);
+      wrap.appendChild(input);
+      container.appendChild(wrap);
+      bindNativeTimePicker(input);
+      continue;
     } else if (def.key === "crewCounter" && v != null) {
       input.value = String(v);
     } else {
@@ -340,10 +343,10 @@ export async function initJournalScreen() {
   });
 
   applySharedFilterToInputs();
-  attachUiDateInput($("journalFrom"));
-  attachUiDateInput($("journalTo"));
-  attachUiTimeInput($("journalTimeFrom"));
-  attachUiTimeInput($("journalTimeTo"));
+  bindNativeDatePicker($("journalFrom"));
+  bindNativeDatePicker($("journalTo"));
+  bindNativeTimePicker($("journalTimeFrom"));
+  bindNativeTimePicker($("journalTimeTo"));
 
   const btnApply = $("btnJournalApply");
   if (btnApply) {
@@ -480,6 +483,10 @@ function applySharedFilterToInputs() {
   if (toEl) toEl.value = period.toDate ? formatUiDateFromIso(period.toDate) : "";
   if (timeFromEl) timeFromEl.value = period.fromTime || "";
   if (timeToEl) timeToEl.value = period.toTime || "";
+  syncNativePickerFromDisplay(fromEl);
+  syncNativePickerFromDisplay(toEl);
+  syncNativePickerFromDisplay(timeFromEl);
+  syncNativePickerFromDisplay(timeToEl);
 }
 
 function saveCurrentInputsToSharedFilter() {

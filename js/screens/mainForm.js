@@ -38,7 +38,7 @@
  */
 
 import { $, nowTime, setStatus, refreshMissionDateForNewDay } from "../utils.js";
-import { attachUiDateInput, attachUiTimeInput, syncDateInputToUiFormat } from "../date-utils.js";
+import { bindNativeDatePicker, bindNativeTimePicker, syncNativePickerFromDisplay } from "../ui-native-datetime.js";
 import { loadCounter, loadCrewName, persistCrewField, sanitizeCounterField } from "../counter.js";
 import { normalize5 } from "../coords.js";
 import {
@@ -80,9 +80,10 @@ export async function initMainFormScreen() {
   const impact = $("impact");
   if (datePicker) refreshMissionDateForNewDay();
   if (takeoff) takeoff.value = nowTime();
-  attachUiDateInput(datePicker);
-  attachUiTimeInput(takeoff);
-  attachUiTimeInput(impact);
+  bindNativeDatePicker(datePicker);
+  bindNativeTimePicker(takeoff);
+  bindNativeTimePicker(impact);
+  syncNativePickerFromDisplay(takeoff);
 
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
@@ -92,7 +93,7 @@ export async function initMainFormScreen() {
 
   window.addEventListener("pageshow", () => {
     refreshMissionDateForNewDay();
-    syncDateInputToUiFormat($("datePicker"));
+    syncNativePickerFromDisplay($("datePicker"));
   });
 
   loadCounter();
@@ -108,6 +109,7 @@ export async function initMainFormScreen() {
     btnNowTakeoff.onclick = () => {
       const el = $("takeoff");
       if (el) el.value = nowTime();
+      syncNativePickerFromDisplay(el);
       updateEmptyHighlights();
     };
   }
@@ -117,6 +119,7 @@ export async function initMainFormScreen() {
     btnNowImpact.onclick = () => {
       const el = $("impact");
       if (el) el.value = nowTime();
+      syncNativePickerFromDisplay(el);
       updateEmptyHighlights();
     };
   }
@@ -194,10 +197,10 @@ export async function initMainFormScreen() {
 
   // Browser may restore form fields (ISO dates) after async init — normalize again.
   refreshMissionDateForNewDay();
-  syncDateInputToUiFormat($("datePicker"));
+  syncNativePickerFromDisplay($("datePicker"));
   requestAnimationFrame(() => {
     refreshMissionDateForNewDay();
-    syncDateInputToUiFormat($("datePicker"));
+    syncNativePickerFromDisplay($("datePicker"));
   });
 
   // Enable long-press-to-edit for select fields as before.

@@ -12,6 +12,7 @@
  */
 
 import { isoToDdMmYyyy, syncDateInputToUiFormat } from "./date-utils.js";
+import { syncNativePickerFromDisplay } from "./ui-native-datetime.js";
 
 /**
  * EN: Shorthand for `document.getElementById`. The whole codebase uses `$`
@@ -103,6 +104,7 @@ export function refreshMissionDateForNewDay() {
   }
 
   syncDateInputToUiFormat(dp);
+  syncNativePickerFromDisplay(dp);
 }
 
 /**
