@@ -65,6 +65,13 @@
  */
 
 import { $, isoToDDMMYYYY, setStatus } from "../utils.js";
+import {
+  attachUiDateInput,
+  attachUiTimeInput,
+  formatUiDateFromIso,
+  parseUiDateToIso,
+  formatUiTime,
+} from "../date-utils.js";
 import { copyText } from "../clipboard.js";
 import {
   listReports,
@@ -85,6 +92,7 @@ import { loadSyncSettings } from "../sync-settings.js";
 import {
   loadPeriodFilter,
   savePeriodFilter,
+  getDefaultPeriodFilter,
   isWithinPeriodFilter,
   getImpactTimestampForReport,
 } from "../filters.js";
@@ -165,17 +173,6 @@ function filterReportsForJournal(reports, period, searchStr) {
     }
     return true;
   });
-}
-
-function fmtIso(iso) {
-  if (!iso) return "—";
-  try {
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return iso;
-    return d.toLocaleString("uk-UA", { dateStyle: "short", timeStyle: "short" });
-  } catch {
-    return iso;
-  }
 }
 
 function statusBadgeClass(st) {
@@ -264,11 +261,29 @@ function renderEditFields(container, report) {
     const input = document.createElement("input");
     input.className = "journal-edit-field-input";
     input.dataset.fieldKey = def.key;
-    input.type = def.type || "text";
+    input.type = "text";
     if (def.maxLength) input.maxLength = def.maxLength;
     const v = f[def.key];
-    if (def.key === "crewCounter" && v != null) input.value = String(v);
-    else input.value = v != null && v !== undefined ? String(v) : "";
+    if (def.type === "date") {
+      input.classList.add("ui-date");
+      input.inputMode = "numeric";
+      input.placeholder = "ДД.ММ.РРРР";
+      input.maxLength = 10;
+      const raw = v != null && v !== undefined ? String(v) : "";
+      input.value = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? formatUiDateFromIso(raw) : raw;
+      attachUiDateInput(input);
+    } else if (def.type === "time") {
+      input.classList.add("ui-time");
+      input.inputMode = "numeric";
+      input.placeholder = "ГГ:ХХ";
+      input.maxLength = 5;
+      input.value = formatUiTime(v != null && v !== undefined ? String(v) : "") || (v != null ? String(v) : "");
+      attachUiTimeInput(input);
+    } else if (def.key === "crewCounter" && v != null) {
+      input.value = String(v);
+    } else {
+      input.value = v != null && v !== undefined ? String(v) : "";
+    }
     wrap.appendChild(lab);
     wrap.appendChild(input);
     container.appendChild(wrap);
@@ -325,6 +340,10 @@ export async function initJournalScreen() {
   });
 
   applySharedFilterToInputs();
+  attachUiDateInput($("journalFrom"));
+  attachUiDateInput($("journalTo"));
+  attachUiTimeInput($("journalTimeFrom"));
+  attachUiTimeInput($("journalTimeTo"));
 
   const btnApply = $("btnJournalApply");
   if (btnApply) {
@@ -439,24 +458,36 @@ export async function initJournalScreen() {
   setupEditDialog();
 }
 
+/**
+ * EN: Called when the journal screen becomes visible — resets the period to
+ *     today (full day) and refreshes the list/KPI.
+ * UA: Викликається при показі екрана журналу — скидає період на сьогодні
+ *     (повна доба) і оновлює список/KPI.
+ */
+export function onJournalScreenShown() {
+  savePeriodFilter(getDefaultPeriodFilter());
+  applySharedFilterToInputs();
+  void renderForSelectedPeriod();
+}
+
 function applySharedFilterToInputs() {
   const period = loadPeriodFilter();
   const fromEl = $("journalFrom");
   const toEl = $("journalTo");
   const timeFromEl = $("journalTimeFrom");
   const timeToEl = $("journalTimeTo");
-  if (fromEl) fromEl.value = period.fromDate || "";
-  if (toEl) toEl.value = period.toDate || "";
+  if (fromEl) fromEl.value = period.fromDate ? formatUiDateFromIso(period.fromDate) : "";
+  if (toEl) toEl.value = period.toDate ? formatUiDateFromIso(period.toDate) : "";
   if (timeFromEl) timeFromEl.value = period.fromTime || "";
   if (timeToEl) timeToEl.value = period.toTime || "";
 }
 
 function saveCurrentInputsToSharedFilter() {
   savePeriodFilter({
-    fromDate: ($("journalFrom")?.value || "").trim(),
-    toDate: ($("journalTo")?.value || "").trim(),
-    fromTime: ($("journalTimeFrom")?.value || "").trim(),
-    toTime: ($("journalTimeTo")?.value || "").trim(),
+    fromDate: parseUiDateToIso(($("journalFrom")?.value || "").trim()),
+    toDate: parseUiDateToIso(($("journalTo")?.value || "").trim()),
+    fromTime: formatUiTime(($("journalTimeFrom")?.value || "").trim()),
+    toTime: formatUiTime(($("journalTimeTo")?.value || "").trim()),
   });
 }
 
@@ -725,7 +756,12 @@ function collectFieldsFromEditDialog() {
   const result = {};
   for (const def of FIELD_DEF) {
     const input = fieldsEl.querySelector(`[data-field-key="${def.key}"]`);
-    if (input instanceof HTMLInputElement || input instanceof HTMLSelectElement) {
+    if (!(input instanceof HTMLInputElement)) continue;
+    if (def.type === "date") {
+      result[def.key] = parseUiDateToIso(input.value);
+    } else if (def.type === "time") {
+      result[def.key] = formatUiTime(input.value);
+    } else {
       result[def.key] = input.value;
     }
   }

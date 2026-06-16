@@ -295,8 +295,8 @@ button:active {
   align-items: stretch;
 }
 
-.journal-period-block input[type="date"],
-.journal-period-block input[type="time"] {
+.journal-period-block input.ui-date,
+.journal-period-block input.ui-time {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
@@ -609,10 +609,10 @@ button:active {
   max-height: none;
 }
 
-/* Make native calendar/time icons visible on dark background */
-input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="time"]::-webkit-calendar-picker-indicator {
-  filter: invert(1) opacity(0.85);
+/* Date/time text fields — no native picker icons */
+input.ui-date,
+input.ui-time {
+  font-variant-numeric: tabular-nums;
 }
 
 /* ========================================================= */

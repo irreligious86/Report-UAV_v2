@@ -50,7 +50,7 @@
 
 import { $, refreshMissionDateForNewDay } from "./utils.js";
 import { onMapScreenShown, resetMapLayout } from "./screens/map.js";
-import { resetJournalListLayout } from "./screens/journal.js";
+import { resetJournalListLayout, onJournalScreenShown } from "./screens/journal.js";
 import { LONG_PRESS_MS } from "./constants.js";
 
 /** EN: Known screen ids (order matches the menu in `index.html`). UA: Відомі id екранів (порядок відповідає меню в `index.html`). */
@@ -222,6 +222,10 @@ export function navigateTo(screenId) {
 
   if (currentScreenId === "main") {
     refreshMissionDateForNewDay();
+  }
+
+  if (currentScreenId === "journal") {
+    onJournalScreenShown();
   }
 
   if (currentScreenId === "map") {

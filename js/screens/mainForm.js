@@ -38,6 +38,7 @@
  */
 
 import { $, nowTime, setStatus, refreshMissionDateForNewDay } from "../utils.js";
+import { attachUiDateInput, attachUiTimeInput } from "../date-utils.js";
 import { loadCounter, loadCrewName, persistCrewField, sanitizeCounterField } from "../counter.js";
 import { normalize5 } from "../coords.js";
 import {
@@ -76,8 +77,12 @@ export async function initMainFormScreen() {
 
   const datePicker = $("datePicker");
   const takeoff = $("takeoff");
+  const impact = $("impact");
   if (datePicker) refreshMissionDateForNewDay();
   if (takeoff) takeoff.value = nowTime();
+  attachUiDateInput(datePicker);
+  attachUiTimeInput(takeoff);
+  attachUiTimeInput(impact);
 
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {

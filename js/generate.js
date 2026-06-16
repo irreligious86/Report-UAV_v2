@@ -75,6 +75,7 @@ import {
   autosizeTextarea,
   setStatus,
   refreshMissionDateForNewDay,
+  isoToDDMMYYYY,
 } from "./utils.js";
 import { saveCounterMaybe } from "./counter.js";
 import { createAndStoreReport } from "./report-actions.js";
@@ -138,7 +139,7 @@ async function doGenerate_() {
   refreshMissionDateForNewDay();
   const dp = $("datePicker");
   if (dp instanceof HTMLInputElement && !String(dp.value || "").trim()) {
-    dp.value = todayISO();
+    dp.value = isoToDDMMYYYY(todayISO());
   }
 
   // Collect fields — returns null if coords are invalid (error shown inside)
@@ -166,7 +167,7 @@ async function doGenerate_() {
   // Advance counter and reset date AFTER successful save
   advanceCrewCounterAfterSnapshot_(fields);
   const dpAfter = $("datePicker");
-  if (dpAfter instanceof HTMLInputElement) dpAfter.value = todayISO();
+  if (dpAfter instanceof HTMLInputElement) dpAfter.value = isoToDDMMYYYY(todayISO());
 
   updateEmptyHighlights();
 }

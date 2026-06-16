@@ -9,6 +9,7 @@
 import { normalizeFields } from "./report-format.js";
 import { mapResultToCategory, isKpiHit, isKpiLoss } from "./result-mapping.js";
 import { $ } from "./utils.js";
+import { isoToDdMmYyyy } from "./date-utils.js";
 
 /**
  * EN: Increment a Map<string, number> counter for the given key.
@@ -60,7 +61,12 @@ export function computeStats(reports) {
  * @returns {string}
  */
 export function buildSummaryText(stats, period) {
-  const fmtPeriod = (d, t) => (d ? (t ? `${d} ${t}` : d) : "");
+  const fmtDate = (d) =>
+    d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? isoToDdMmYyyy(d) : d || "";
+  const fmtPeriod = (d, t) => {
+    const datePart = fmtDate(d);
+    return datePart ? (t ? `${datePart} ${t}` : datePart) : "";
+  };
   const parts = [];
   parts.push(`Період: ${fmtPeriod(period.fromDate, period.fromTime)} → ${fmtPeriod(period.toDate, period.toTime)}`);
   parts.push("");

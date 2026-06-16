@@ -78,6 +78,7 @@
 
 import { STREAM_PLACEHOLDER } from "./constants.js";
 import { $, isoToDDMMYYYY } from "./utils.js";
+import { normalizeDateToISO, normalizeTime24, combineDateAndTime } from "./date-utils.js";
 import { parseCounterRaw, validateCrewOrError } from "./counter.js";
 import { buildCoordsOrError } from "./coords.js";
 
@@ -242,48 +243,16 @@ export function collectFieldsFromMainForm() {
   return {
     crew,
     crewCounter: parsedCounter.empty ? null : parsedCounter.value,
-    date: ($("datePicker").value || "").trim(),
+    date: normalizeDateToISO(($("datePicker").value || "").trim()),
     drone: $("drone").value || "",
     missionType: $("missionType").value || "",
-    takeoff: $("takeoff").value || "",
-    impact: $("impact").value || "",
+    takeoff: normalizeTime24($("takeoff").value || ""),
+    impact: normalizeTime24($("impact").value || ""),
     coords,
     ammo: $("ammo").value || "",
     stream: $("stream").value || STREAM_PLACEHOLDER,
     result: $("result").value || "",
   };
-}
-
-/**
- * EN: Local copy of "DD.MM.YYYY → YYYY-MM-DD". We don't reuse
- *     `date-utils.normalizeDateToISO` here because that would create a
- *     circular dependency through `filters.js`. Behaviour is identical.
- * UA: Локальна копія «DD.MM.YYYY → YYYY-MM-DD». Не реюзаємо
- *     `date-utils.normalizeDateToISO`, бо це створить циклічну залежність
- *     через `filters.js`. Поведінка ідентична.
- */
-function normalizeDateToISOField(dateStr) {
-  const s = String(dateStr || "").trim();
-  if (!s) return "";
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  const m = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
-  if (!m) return "";
-  const dd = String(parseInt(m[1], 10)).padStart(2, "0");
-  const mm = String(parseInt(m[2], 10)).padStart(2, "0");
-  return `${m[3]}-${mm}-${dd}`;
-}
-
-/**
- * EN: Combines an ISO date and "HH:MM" into a local Date. Returns null on
- *     parse failure. Same rationale as `normalizeDateToISOField` — local
- *     copy to avoid the dependency cycle.
- * UA: Поєднує ISO-дату і "HH:MM" у локальний Date. null при невдалому
- *     парсі. Та сама причина для локальної копії — уникнути цикл імпорту.
- */
-function combineDateTimeField(dateStr, timeStr) {
-  if (!dateStr) return null;
-  const dt = new Date(`${dateStr}T${timeStr || "00:00"}`);
-  return Number.isNaN(dt.getTime()) ? null : dt;
 }
 
 /**
@@ -302,10 +271,10 @@ function combineDateTimeField(dateStr, timeStr) {
  */
 export function getImpactTimestampMs(fields) {
   const f = normalizeFields(fields);
-  const iso = normalizeDateToISOField(f.date || "");
-  const time = String(f.impact || "").trim();
+  const iso = normalizeDateToISO(f.date || "");
+  const time = normalizeTime24(f.impact || "");
   if (!iso || !time) return null;
-  const dt = combineDateTimeField(iso, time);
+  const dt = combineDateAndTime(iso, time);
   if (!dt) return null;
   const ms = dt.getTime();
   return Number.isNaN(ms) ? null : ms;
