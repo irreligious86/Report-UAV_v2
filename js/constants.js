@@ -19,6 +19,9 @@ export const STORAGE_KEY_CREW_NAME = "uav_crew_name_v1";
 /** EN: Default stream field placeholder. UA: Плейсхолдер поля «Стрім». */
 export const STREAM_PLACEHOLDER = "---";
 
+/** EN: Max length for drone, mission type, ammo and stream text fields. UA: Макс. довжина для борту, характеру, боєприпасу та стріму. */
+export const FORM_TEXT_FIELD_MAX_LENGTH = 32;
+
 /** EN: Max reports in IndexedDB; bulk import may drop oldest. UA: Максимум звітів у IndexedDB; при імпорті старі можуть відсіктися. */
 export const REPORTS_LIMIT = 500;
 

@@ -78,7 +78,7 @@
 
 import { STREAM_PLACEHOLDER } from "./constants.js";
 import { $, isoToDDMMYYYY } from "./utils.js";
-import { parseCounterRaw } from "./counter.js";
+import { parseCounterRaw, validateCrewOrError } from "./counter.js";
 import { buildCoordsOrError } from "./coords.js";
 
 /**
@@ -220,26 +220,27 @@ export function buildReportText(fields) {
 
 /**
  * EN: Reads the main report form (`#screen-main`) into structured fields.
- *     Validates coordinates via `buildCoordsOrError` — returns null when
- *     MGRS coords are not exactly 5+5 digits, the form will already
- *     have shown the inline error.
+ *     Validates crew via `validateCrewOrError` and coordinates via
+ *     `buildCoordsOrError` — returns null when invalid (inline errors shown).
  *     Counter is parsed by `parseCounterRaw`; empty input → null.
  *     The caller (`generate.js`) treats `null` as "abort generation".
  * UA: Зчитує головну форму звіту (`#screen-main`) у структурні поля.
- *     Перевіряє координати через `buildCoordsOrError` — повертає null,
- *     коли MGRS не точно 5+5 цифр; форма вже показала помилку поряд.
+ *     Перевіряє екіпаж через `validateCrewOrError` і координати через
+ *     `buildCoordsOrError` — при помилці повертає null (помилки біля полів).
  *     Лічильник розбирає `parseCounterRaw`; порожнє → null.
  *     Викликач (`generate.js`) трактує `null` як «припинити генерацію».
  * @returns {ReportFields|null}
  */
 export function collectFieldsFromMainForm() {
-  const crewInput = $("crew");
+  const crew = validateCrewOrError();
+  if (!crew) return null;
+
   const coords = buildCoordsOrError();
   if (!coords) return null;
 
   const parsedCounter = parseCounterRaw($("crewCounter").value);
   return {
-    crew: crewInput ? crewInput.value.trim() || "" : "",
+    crew,
     crewCounter: parsedCounter.empty ? null : parsedCounter.value,
     date: ($("datePicker").value || "").trim(),
     drone: $("drone").value || "",

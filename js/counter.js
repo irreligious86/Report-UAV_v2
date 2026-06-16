@@ -14,7 +14,7 @@
  * @module counter
  */
 
-import { $ } from "./utils.js";
+import { $, setStatus } from "./utils.js";
 import { STORAGE_KEY_COUNTER, STORAGE_KEY_CREW_NAME } from "./constants.js";
 import { updateEmptyHighlights } from "./config.js";
 
@@ -103,6 +103,30 @@ export function loadCrewName() {
 }
 
 /**
+ * EN: Validates `#crew` — returns trimmed callsign or shows `#crewError`,
+ *     focuses the field and returns `null` when empty.
+ * UA: Перевіряє `#crew` — повертає позивний або показує `#crewError`,
+ *     фокусує поле і повертає `null`, якщо порожньо.
+ * @returns {string|null}
+ */
+export function validateCrewOrError() {
+  const el = $("crew");
+  const err = $("crewError");
+  if (err) err.textContent = "";
+  const name = el instanceof HTMLInputElement ? el.value.trim() : "";
+  if (!name) {
+    if (err) err.textContent = "Екіпаж: введіть позивний.";
+    setStatus("Помилка: не вказано екіпаж.");
+    if (el instanceof HTMLInputElement) {
+      el.focus();
+      updateEmptyHighlights();
+    }
+    return null;
+  }
+  return name;
+}
+
+/**
  * EN: `oninput` handler for `#crew` — saves callsign on every change.
  * UA: Обробник `oninput` для `#crew` — зберігає позивний при кожній зміні.
  */
@@ -110,6 +134,8 @@ export function persistCrewField() {
   const el = $("crew");
   if (!el) return;
   saveCrewName(el.value);
+  const err = $("crewError");
+  if (err && String(el.value || "").trim()) err.textContent = "";
   updateEmptyHighlights();
 }
 

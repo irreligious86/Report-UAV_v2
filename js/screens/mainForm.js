@@ -48,6 +48,7 @@ import {
 } from "../config.js";
 import { enableLongPressToEdit } from "../longPressEdit.js";
 import { generate } from "../generate.js";
+import { FORM_TEXT_FIELD_MAX_LENGTH } from "../constants.js";
 
 /**
  * EN: Tracks whether the user has started typing in `easting`. When they
@@ -182,9 +183,9 @@ export async function initMainFormScreen() {
   }
 
   // Enable long-press-to-edit for select fields as before.
-  enableLongPressToEdit("ammo", "ammoList", 50);
-  enableLongPressToEdit("drone", "droneList", 50);
-  enableLongPressToEdit("missionType", "missionTypeList", 50);
+  enableLongPressToEdit("ammo", "ammoList", FORM_TEXT_FIELD_MAX_LENGTH);
+  enableLongPressToEdit("drone", "droneList", FORM_TEXT_FIELD_MAX_LENGTH);
+  enableLongPressToEdit("missionType", "missionTypeList", FORM_TEXT_FIELD_MAX_LENGTH);
   enableLongPressToEdit("result", "resultList", 100);
 
   updateEmptyHighlights();

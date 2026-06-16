@@ -79,7 +79,7 @@ import {
   enqueueReportsForSheetSync,
   SYNC_STATUS,
 } from "../report-actions.js";
-import { REPORTS_LIMIT } from "../constants.js";
+import { REPORTS_LIMIT, FORM_TEXT_FIELD_MAX_LENGTH } from "../constants.js";
 import { normalizeFields } from "../report-format.js";
 import { loadSyncSettings } from "../sync-settings.js";
 import {
@@ -140,13 +140,13 @@ const FIELD_DEF = [
   { key: "crew", label: "Екіпаж", type: "text" },
   { key: "crewCounter", label: "Лічильник", type: "number" },
   { key: "date", label: "Дата", type: "date" },
-  { key: "drone", label: "Борт", type: "text" },
-  { key: "missionType", label: "Характер", type: "text" },
+  { key: "drone", label: "Борт", type: "text", maxLength: FORM_TEXT_FIELD_MAX_LENGTH },
+  { key: "missionType", label: "Характер", type: "text", maxLength: FORM_TEXT_FIELD_MAX_LENGTH },
   { key: "takeoff", label: "Час зльоту", type: "time" },
   { key: "impact", label: "Час ураження", type: "time" },
   { key: "coords", label: "Координати", type: "text" },
-  { key: "ammo", label: "Боєприпас", type: "text" },
-  { key: "stream", label: "Стрім", type: "text" },
+  { key: "ammo", label: "Боєприпас", type: "text", maxLength: FORM_TEXT_FIELD_MAX_LENGTH },
+  { key: "stream", label: "Стрім", type: "text", maxLength: FORM_TEXT_FIELD_MAX_LENGTH },
   { key: "result", label: "Результат", type: "text" },
 ];
 
@@ -265,6 +265,7 @@ function renderEditFields(container, report) {
     input.className = "journal-edit-field-input";
     input.dataset.fieldKey = def.key;
     input.type = def.type || "text";
+    if (def.maxLength) input.maxLength = def.maxLength;
     const v = f[def.key];
     if (def.key === "crewCounter" && v != null) input.value = String(v);
     else input.value = v != null && v !== undefined ? String(v) : "";
