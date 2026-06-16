@@ -23,6 +23,7 @@ import { initMapScreen } from "./screens/map.js";
 import { initHelpScreen } from "./screens/help.js";
 import { initNavigation } from "./navigation.js";
 import { initPwaInstall } from "./pwa-install.js";
+import { initPwaUpdate } from "./pwa-update.js";
 
 /**
  * EN: Boots the client application (called once at load).
@@ -40,6 +41,7 @@ async function initApp() {
   initNavigation();
   initHelpScreen();
   initPwaInstall();
+  initPwaUpdate();
 }
 
 initApp();

@@ -957,6 +957,19 @@ title="Зберегти зміни"
 </button>
 </div>
 
+<div class="pwa-update-row">
+  <button class="pwa-install-btn pwa-update-btn" type="button" id="btnPwaUpdate" hidden>
+    <svg class="pwa-install-btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="23 4 23 10 17 10"/>
+      <polyline points="1 20 1 14 7 14"/>
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+    </svg>
+    Підтягнути оновлення
+  </button>
+  <div class="pwa-update-status" id="pwaUpdateStatus" aria-live="polite"></div>
+</div>
+
 <!-- EN: Visible status chip when installation is impossible / already done.
      UA: Видимий чіп-статус, коли встановлення неможливе або вже зроблене. -->
 <div class="pwa-status" id="pwaStatus" hidden>
@@ -1016,7 +1029,7 @@ title="Зберегти зміни"
 
 <p class="help-subblock"><strong class="help-subblock-label">Навіщо встановлювати?</strong> Швидкий запуск з іконки на початковому екрані; стійкіша робота офлайн після першого завантаження; менший ризик «загубити» вкладку серед сайтів; повноекранний режим без адресного рядка.</p>
 
-<p class="help-callout help-callout--warn"><strong>Важливо:</strong> перший візит бажано з інтернетом, щоб сервіс-воркер і файли закешувались; для <strong>index.html</strong> і <strong>js/app.js</strong> застосунок намагається спочатку взяти свіжу копію з мережі, щоб після оновлення не зависати на битій сторінці в кеші. Якщо після оновлення щось «ламається» — закрийте вкладку, очистіть кеш сайту або перевстановіть PWA.</p>
+<p class="help-callout help-callout--warn"><strong>Важливо:</strong> перший візит бажано з інтернетом, щоб сервіс-воркер і файли закешувались. Після оновлення на GitHub Pages не перевстановлюйте PWA — відкрийте розділ <strong>«Встановити на смартфон (PWA)»</strong> і натисніть <strong>«Підтягнути оновлення»</strong> (потрібен інтернет). Якщо з’явиться нова версія, кнопка зміниться на <strong>«Застосувати оновлення»</strong> і перезавантажить застосунок із свіжими файлами.</p>
 </div>
 </details>
 

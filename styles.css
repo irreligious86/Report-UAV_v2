@@ -2753,6 +2753,33 @@ input.ui-time {
   box-shadow: 0 0 10px rgba(85, 243, 255, 0.45);
 }
 
+.pwa-update-row {
+  margin: 0 0 14px;
+}
+
+.pwa-update-row .pwa-update-btn {
+  width: 100%;
+  margin: 0 0 10px;
+}
+
+.pwa-update-btn--ready {
+  border-color: rgba(255, 196, 0, 0.45);
+  background:
+    linear-gradient(145deg, rgba(255, 196, 0, 0.12), rgba(10, 15, 16, 0.85));
+  color: #ffd966;
+}
+
+.pwa-update-status {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: rgba(122, 167, 169, 0.96);
+  min-height: 1.25em;
+}
+
+.pwa-update-status:empty {
+  display: none;
+}
+
 .pwa-guides {
   display: flex;
   flex-direction: column;
