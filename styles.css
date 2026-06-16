@@ -2285,6 +2285,43 @@ input.ui-time {
   gap: 10px;
 }
 
+.help-hero-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(85, 243, 255, 0.28);
+  background: linear-gradient(180deg, rgba(18, 32, 34, 0.95), rgba(10, 15, 16, 0.75));
+  color: var(--label);
+  cursor: pointer;
+  box-shadow: var(--shadow-btn);
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.help-hero-toggle:hover,
+.help-hero-toggle:focus-visible {
+  border-color: rgba(0, 255, 102, 0.45);
+  background: rgba(0, 255, 102, 0.08);
+  outline: none;
+}
+
+.help-hero-toggle:active {
+  transform: scale(0.96);
+}
+
+.help-hero-toggle-icon {
+  flex-shrink: 0;
+  opacity: 0.9;
+  transition: transform 0.2s ease;
+}
+
+.help-hero-toggle--expanded .help-hero-toggle-icon {
+  transform: rotate(180deg);
+}
+
 .help-hero-btn {
   display: inline-flex;
   align-items: center;

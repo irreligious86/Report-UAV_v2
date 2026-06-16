@@ -120,16 +120,30 @@ export function formatIsoDateTimeForUi(iso) {
 }
 
 /**
- * EN: On blur, reformat a date input to padded "DD.MM.YYYY" when parseable.
- * UA: При blur переформатовує поле дати у «ДД.ММ.РРРР», якщо ввід розпізнано.
+ * EN: Rewrites a date input value to padded "DD.MM.YYYY" when parseable
+ *     (accepts legacy ISO "YYYY-MM-DD" from autofill or old sessions).
+ * UA: Переписує поле дати у «ДД.ММ.РРРР», якщо ввід розпізнано (зокрема
+ *     старий ISO «РРРР-ММ-ДД» з автозаповнення).
+ * @param {HTMLElement | null} el
+ */
+export function syncDateInputToUiFormat(el) {
+  if (!(el instanceof HTMLInputElement)) return;
+  const iso = normalizeDateToISO(el.value);
+  if (iso) el.value = isoToDdMmYyyy(iso);
+}
+
+/**
+ * EN: On blur/focus/change, reformat a date input to padded "DD.MM.YYYY".
+ * UA: При blur/focus/change переформатовує поле дати у «ДД.ММ.РРРР».
  * @param {HTMLElement | null} el
  */
 export function attachUiDateInput(el) {
   if (!(el instanceof HTMLInputElement)) return;
-  el.addEventListener("blur", () => {
-    const iso = normalizeDateToISO(el.value);
-    if (iso) el.value = isoToDdMmYyyy(iso);
-  });
+  const format = () => syncDateInputToUiFormat(el);
+  el.addEventListener("blur", format);
+  el.addEventListener("focus", format);
+  el.addEventListener("change", format);
+  format();
 }
 
 /**

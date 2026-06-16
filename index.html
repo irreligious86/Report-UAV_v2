@@ -67,7 +67,7 @@ autocomplete="off"
 
 <label>
 Дата:
-<input type="text" id="datePicker" class="ui-date" inputmode="numeric" placeholder="ДД.ММ.РРРР" maxlength="10" autocomplete="off"/>
+<input type="text" id="datePicker" class="ui-date" inputmode="numeric" placeholder="ДД.ММ.РРРР" maxlength="10" autocomplete="off" spellcheck="false" data-lpignore="true" data-form-type="other"/>
 </label>
 
 <label>
@@ -498,19 +498,14 @@ title="Зберегти зміни"
   </p>
 
   <div class="help-hero-actions">
-    <button class="help-hero-btn" type="button" data-help-all="open">
-      <svg class="help-hero-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <button class="help-hero-toggle" type="button" id="helpToggleAllBtn"
+            aria-expanded="false"
+            aria-label="Розгорнути всі розділи довідки"
+            title="Розгорнути все">
+      <svg class="help-hero-toggle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <polyline points="6 9 12 15 18 9"/>
       </svg>
-      Розгорнути все
-    </button>
-    <button class="help-hero-btn help-hero-btn--ghost" type="button" data-help-all="close">
-      <svg class="help-hero-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <polyline points="18 15 12 9 6 15"/>
-      </svg>
-      Згорнути все
     </button>
   </div>
 </div>
