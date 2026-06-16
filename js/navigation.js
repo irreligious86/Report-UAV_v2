@@ -50,6 +50,7 @@
 
 import { $, refreshMissionDateForNewDay } from "./utils.js";
 import { syncDateInputToUiFormat } from "./date-utils.js";
+import { syncNativePickerFromDisplay } from "./ui-native-datetime.js";
 import { onMapScreenShown, resetMapLayout } from "./screens/map.js";
 import { resetJournalListLayout, onJournalScreenShown } from "./screens/journal.js";
 import { LONG_PRESS_MS } from "./constants.js";
@@ -224,6 +225,7 @@ export function navigateTo(screenId) {
   if (currentScreenId === "main") {
     refreshMissionDateForNewDay();
     syncDateInputToUiFormat($("datePicker"));
+    syncNativePickerFromDisplay($("datePicker"));
   }
 
   if (currentScreenId === "journal") {
