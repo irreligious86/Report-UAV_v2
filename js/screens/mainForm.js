@@ -38,7 +38,7 @@
  */
 
 import { $, nowTime, setStatus, refreshMissionDateForNewDay } from "../utils.js";
-import { attachUiDateInput, attachUiTimeInput } from "../date-utils.js";
+import { attachUiDateInput, attachUiTimeInput, syncDateInputToUiFormat } from "../date-utils.js";
 import { loadCounter, loadCrewName, persistCrewField, sanitizeCounterField } from "../counter.js";
 import { normalize5 } from "../coords.js";
 import {
@@ -88,6 +88,11 @@ export async function initMainFormScreen() {
     if (document.visibilityState === "visible") {
       refreshMissionDateForNewDay();
     }
+  });
+
+  window.addEventListener("pageshow", () => {
+    refreshMissionDateForNewDay();
+    syncDateInputToUiFormat($("datePicker"));
   });
 
   loadCounter();
@@ -186,6 +191,14 @@ export async function initMainFormScreen() {
   } catch (e) {
     setStatus("Помилка конфігу.");
   }
+
+  // Browser may restore form fields (ISO dates) after async init — normalize again.
+  refreshMissionDateForNewDay();
+  syncDateInputToUiFormat($("datePicker"));
+  requestAnimationFrame(() => {
+    refreshMissionDateForNewDay();
+    syncDateInputToUiFormat($("datePicker"));
+  });
 
   // Enable long-press-to-edit for select fields as before.
   enableLongPressToEdit("ammo", "ammoList", FORM_TEXT_FIELD_MAX_LENGTH);

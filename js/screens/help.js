@@ -59,6 +59,37 @@ function setAllHelpSectionsOpen(open) {
   for (const d of getHelpSections()) {
     d.open = open;
   }
+  syncHelpToggleAllButton();
+}
+
+/**
+ * EN: Sync expand/collapse-all toggle icon and labels with section state.
+ * UA: Синхронізує іконку та підписи перемикача «всі розділи» зі станом.
+ */
+function syncHelpToggleAllButton() {
+  const btn = $("helpToggleAllBtn");
+  if (!(btn instanceof HTMLButtonElement)) return;
+
+  const sections = getHelpSections();
+  const allOpen = sections.length > 0 && sections.every((d) => d.open);
+
+  btn.classList.toggle("help-hero-toggle--expanded", allOpen);
+  btn.setAttribute("aria-expanded", allOpen ? "true" : "false");
+  btn.title = allOpen ? "Згорнути все" : "Розгорнути все";
+  btn.setAttribute(
+    "aria-label",
+    allOpen ? "Згорнути всі розділи довідки" : "Розгорнути всі розділи довідки"
+  );
+}
+
+/**
+ * EN: Expand all sections if any are closed; otherwise collapse all.
+ * UA: Розгорнути всі, якщо щось згорнуто; інакше — згорнути всі.
+ */
+function toggleAllHelpSections() {
+  const sections = getHelpSections();
+  const allOpen = sections.length > 0 && sections.every((d) => d.open);
+  setAllHelpSectionsOpen(!allOpen);
 }
 
 /**
@@ -241,10 +272,10 @@ export function initHelpScreen() {
         jumpToHelpSection(jump.dataset.helpJump);
       }
 
-      const allBtn = t.closest("[data-help-all]");
-      if (allBtn instanceof HTMLElement && allBtn.dataset.helpAll) {
+      const toggleAllBtn = t.closest("#helpToggleAllBtn");
+      if (toggleAllBtn instanceof HTMLButtonElement) {
         ev.preventDefault();
-        setAllHelpSectionsOpen(allBtn.dataset.helpAll === "open");
+        toggleAllHelpSections();
       }
 
       const pwaJump = t.closest("[data-pwa-guide-jump]");
@@ -264,6 +295,11 @@ export function initHelpScreen() {
 
   bindWindowScrollHandlers();
   setupSectionScrollSpy();
+
+  for (const section of getHelpSections()) {
+    section.addEventListener("toggle", syncHelpToggleAllButton);
+  }
+  syncHelpToggleAllButton();
 
   const helpScreen = $("screen-help");
   if (helpScreen) {

@@ -11,7 +11,7 @@
  * @module utils
  */
 
-import { isoToDdMmYyyy, normalizeDateToISO } from "./date-utils.js";
+import { isoToDdMmYyyy, syncDateInputToUiFormat } from "./date-utils.js";
 
 /**
  * EN: Shorthand for `document.getElementById`. The whole codebase uses `$`
@@ -102,9 +102,7 @@ export function refreshMissionDateForNewDay() {
     return;
   }
 
-  const raw = String(dp.value || "").trim();
-  const iso = normalizeDateToISO(raw);
-  if (iso) dp.value = isoToDdMmYyyy(iso);
+  syncDateInputToUiFormat(dp);
 }
 
 /**
