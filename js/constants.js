@@ -1,35 +1,39 @@
 /**
- * Application constants.
- * Константы приложения.
+ * Centralized keys and limits — tune without hunting literals across files.
+ *
+ * EN: Version suffixes on `localStorage` keys intentionally reset user data when semantics change.
+ * UA: Суфікси версій у ключах `localStorage` навмисно скидають збережені дані при зміні сенсу.
+ *
  * @module constants
  */
 
-/** URL of the JSON configuration file (relative to the document). */
-/** URL файла конфигурации JSON (относительно документа). */
+/** EN: Relative URL of list defaults (drones, results, …). UA: Відносний URL списків за замовчуванням. */
 export const CONFIG_URL = "./config.json";
 
-/** localStorage key for the crew counter value (1–25). Bump version to reset stored counter. */
-/** Ключ localStorage для значения счётчика экипажа (1–25). Изменение версии сбрасывает сохранённое значение. */
+/** EN: localStorage key for crew flight counter (1–25); bump version to invalidate. UA: Ключ лічильника вильотів екіпажу; змінити версію — скинути збережене значення. */
 export const STORAGE_KEY_COUNTER = "uav_report_counter_v13";
 
-/** Placeholder text for the stream field when empty. */
-/** Подстановочный текст для поля «Стрім», если оно пустое. */
+/** EN: localStorage key for last-used crew callsign. UA: Ключ останнього позивного екіпажу. */
+export const STORAGE_KEY_CREW_NAME = "uav_crew_name_v1";
+
+/** EN: Default stream field placeholder. UA: Плейсхолдер поля «Стрім». */
 export const STREAM_PLACEHOLDER = "---";
 
-/** Maximum number of reports in IndexedDB; older entries are dropped on bulk import. */
+/** EN: Max reports in IndexedDB; bulk import may drop oldest. UA: Максимум звітів у IndexedDB; при імпорті старі можуть відсіктися. */
 export const REPORTS_LIMIT = 500;
 
-/** localStorage key for user overrides of config.json lists/defaults (settings screen). */
-/** Ключ localStorage для пользовательских переопределений config.json (экран настроек). */
+/** EN: User overrides for `config.json` lists (settings screen). UA: Перевизначення списків з `config.json` (екран налаштувань). */
 export const STORAGE_KEY_CONFIG_OVERRIDES = "uav_report_config_overrides_v1";
 
-/** localStorage key for known stream values collected from reports. */
-/** Ключ localStorage для списка значений поля «Стрім», собранных из отчётов. */
+/** EN: Known stream values accumulated from submitted reports. UA: Зібрані значення поля «Стрім». */
 export const STORAGE_KEY_STREAMS = "uav_report_streams_v1";
 
-/** Збережений вибір базового шару карти (підпис у перемикачі шарів). */
+/** EN: Saved basemap label for Leaflet layer switcher. UA: Збережений підпис базового шару карти. */
 export const STORAGE_KEY_MAP_BASEMAP = "uav_map_basemap_label_v1";
 
-/** Stable device id for sync / Sheets attribution (one per browser). */
+/** EN: Per-browser id for sync / Sheets (stable in localStorage). UA: Стабільний id пристрою для синхронізації. */
 export const STORAGE_KEY_DEVICE_ID = "uav_device_id_v1";
+
+/** EN: Hold duration (ms) to trigger long-press actions (title menu, select→input edit). UA: Тривалість утримання (мс) для long-press дій (меню заголовка, редагування select). */
+export const LONG_PRESS_MS = 500;
 

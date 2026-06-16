@@ -1,25 +1,27 @@
 /**
- * MGRS-style coordinates: easting/northing 5-digit normalization and validation.
- * Координаты в стиле MGRS: нормализация и проверка 5-значных easting/northing.
+ * EN: MGRS-style coordinates — 5-digit easting/northing normalisation and
+ *     validation for the main report form.
+ * UA: Координати MGRS-стилю — нормалізація та перевірка 5-значних
+ *     easting/northing для головної форми звіту.
  * @module coords
  */
 
-import { $ } from "./utils.js";
-import { setStatus } from "./utils.js";
+import { $, setStatus } from "./utils.js";
 
 /**
- * Keeps only digits in the input and limits length to 5.
- * Оставляет в поле ввода только цифры и ограничивает длину до 5.
- * @param {HTMLInputElement} el - Input element. Элемент input.
+ * EN: Keeps only digits in the input and truncates to at most 5 characters.
+ * UA: Залишає у полі вводу тільки цифри, обрізаючи до максимум 5 символів.
+ * @param {HTMLInputElement} el — EN: input element. / UA: елемент input.
+ * @returns {void}
  */
 export function normalize5(el) {
   el.value = el.value.replace(/\D/g, "").slice(0, 5);
 }
 
 /**
- * Returns true if the string is exactly 5 digits.
- * Возвращает true, если строка — ровно 5 цифр.
- * @param {string} s - String to check. Строка для проверки.
+ * EN: Returns true when the string is exactly 5 digits.
+ * UA: Повертає true, якщо рядок — рівно 5 цифр.
+ * @param {string} s
  * @returns {boolean}
  */
 export function onlyDigits5(s) {
@@ -27,9 +29,11 @@ export function onlyDigits5(s) {
 }
 
 /**
- * Builds full coordinate string "prefix easting northing" or shows error and returns null.
- * Формирует строку координат "префикс easting northing" или показывает ошибку и возвращает null.
- * @returns {string | null} Coordinate string or null if invalid. Строка координат или null при ошибке.
+ * EN: Builds the full coordinate string "prefix easting northing" or shows an
+ *     inline error in #coordError and returns `null`.
+ * UA: Формує повний рядок координат "префікс easting northing" або показує
+ *     повідомлення про помилку у #coordError та повертає `null`.
+ * @returns {string|null}
  */
 export function buildCoordsOrError() {
   const e = ($("easting")?.value || "").trim();

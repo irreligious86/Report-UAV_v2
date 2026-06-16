@@ -1,31 +1,77 @@
 /**
- * Navigation between logical screens and long-press menu on the title.
- * Навигация между экранами и меню по долгому нажатию на заголовок.
+ * Navigation between logical screens — long-press menu on the title.
+ *
+ * EN:
+ *   The app is a single-page bundle. Each "screen" is a top-level `<div>`
+ *   in `index.html` with an `id="screen-*"` class `.screen`; switching
+ *   screens means toggling the `screenHidden` class.
+ *
+ *   How the user navigates:
+ *     - long-press the title for `LONG_PRESS_MS` → menu pops up,
+ *     - tap a menu item → `navigateTo(id)` flips classes and updates the
+ *       title text.
+ *
+ *   Per-screen housekeeping:
+ *     - leaving the map → `resetMapLayout()` collapses fullscreen mode,
+ *     - leaving the journal → `resetJournalListLayout()` collapses the
+ *       expanded list,
+ *     - entering the form → `refreshMissionDateForNewDay()` to handle
+ *       midnight crossings while the tab was open,
+ *     - entering the map → `onMapScreenShown()` so Leaflet can
+ *       `invalidateSize()` and refresh tiles.
+ *
+ *   The title doubles as a "v2 badge" on the form screen and a clean
+ *   text on others — handled in the switch at the bottom of `navigateTo`.
+ *
+ * UA:
+ *   Застосунок — один SPA-бандл. Кожен «екран» — це `<div>` верхнього
+ *   рівня у `index.html` із `id="screen-*"` та класом `.screen`;
+ *   перемикання екранів = перемикання класу `screenHidden`.
+ *
+ *   Як користувач навігує:
+ *     - довго утримує заголовок `LONG_PRESS_MS` → випливає меню,
+ *     - тап по пункту → `navigateTo(id)` перемикає класи і оновлює
+ *       текст заголовка.
+ *
+ *   Покроково на кожному переході:
+ *     - вихід із мапи → `resetMapLayout()` згортає fullscreen,
+ *     - вихід із журналу → `resetJournalListLayout()` згортає
+ *       розгорнутий список,
+ *     - вхід у форму → `refreshMissionDateForNewDay()` ловить перехід
+ *       через північ, поки вкладка була відкрита,
+ *     - вхід у мапу → `onMapScreenShown()`, щоб Leaflet зробив
+ *       `invalidateSize()` і освіжив тайли.
+ *
+ *   На екрані форми заголовок несе «v2-бейдж», на інших — чистий текст;
+ *   усе це у switch в кінці `navigateTo`.
+ *
  * @module navigation
  */
 
 import { $, refreshMissionDateForNewDay } from "./utils.js";
 import { onMapScreenShown, resetMapLayout } from "./screens/map.js";
 import { resetJournalListLayout } from "./screens/journal.js";
+import { LONG_PRESS_MS } from "./constants.js";
 
-/** Known screen ids (order matches the menu). */
+/** EN: Known screen ids (order matches the menu in `index.html`). UA: Відомі id екранів (порядок відповідає меню в `index.html`). */
 const SCREEN_IDS = ["main", "journal", "data", "map", "settings", "help"];
 
-/** Current active screen id. Текущий активный экран. */
+/** EN: Currently active screen id. UA: Поточний активний екран. */
 let currentScreenId = "main";
 
-/** Long-press timer id. Идентификатор таймера долгого нажатия. */
+/** EN: setTimeout id for the title long-press detection. UA: id setTimeout, що чекає довгого натискання. */
 let longPressTimer = null;
 
-/** Cached menu root element. */
+/** EN: Cached `#screenMenu` root for repeated DOM look-ups. UA: Кешований корінь `#screenMenu`. */
 let menuElement = null;
 
-/** Milliseconds required to treat press as long-press. */
-const LONG_PRESS_MS = 450;
-
 /**
- * Initializes navigation: long-press on title and menu interactions.
- * Инициализирует навигацию: долгое нажатие на заголовок и обработка меню.
+ * EN: Initialises navigation — wires long-press on the title, menu clicks
+ *     and the initial screen render. Idempotent in practice (safe to call
+ *     once at boot).
+ * UA: Ініціалізує навігацію — навішує long-press на заголовок, обробник
+ *     кліків по меню і робить перший рендер екрана. Викликати один раз
+ *     під час старту.
  */
 export function initNavigation() {
   const titleEl = $("title");
@@ -104,9 +150,13 @@ export function initNavigation() {
 }
 
 /**
- * Changes active screen by id and updates header text.
- * Переключает активный экран по идентификатору и обновляет заголовок.
- * @param {string} screenId - One of SCREEN_IDS.
+ * EN: Switches the active screen and updates the title bar. Unknown ids
+ *     are silently ignored. Per-screen housekeeping (collapse fullscreen
+ *     map, refresh date, etc.) is also performed here.
+ * UA: Перемикає активний екран і оновлює заголовок. Невідомі id тихо
+ *     ігноруються. Тут же виконується "прибирання" екранів (згорнути
+ *     повноекранну мапу, освіжити дату тощо).
+ * @param {string} screenId — EN: one of SCREEN_IDS. UA: один із SCREEN_IDS.
  */
 export function navigateTo(screenId) {
   if (!SCREEN_IDS.includes(screenId)) return;
@@ -180,6 +230,6 @@ export function navigateTo(screenId) {
 
   // Close the menu overlay when navigating.
   if (menuElement) {
-    menuElement.classList.remove("is-visible");
+    menuElement.classList.remove("is-open");
   }
 }

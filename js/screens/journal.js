@@ -1,5 +1,66 @@
 /**
- * Journal & statistics: structured reports, sync actions, field-based stats.
+ * Journal & statistics screen — list, KPIs, edit dialog, sync actions.
+ *
+ * EN:
+ *   This screen has two tabs ("Статистика" and "Журнал") that share the
+ *   same period filter and search box.
+ *
+ *   What it does:
+ *     - reads all reports via `report-actions.listReports`,
+ *     - filters by the saved period (from/to date and time) and the
+ *       search query (in the canonical text),
+ *     - renders the cards on the "Журнал" tab and the textual summary +
+ *       KPI tiles on the "Статистика" tab,
+ *     - each card has action icons whose set depends on the report's
+ *       `syncStatus`:
+ *         DRAFT   → Send / Edit / Schedule
+ *         SCHEDULED → Cancel / Edit
+ *         QUEUED / SENDING → Send-now / Cancel-queue
+ *         SENT    → Correct / Resync
+ *         RESYNC_REQUIRED → Send-changes / Edit
+ *         ERROR   → Retry / Edit
+ *         LOCKED  → Correct
+ *     - all stats live in `journal-stats.js` (extracted module) so this
+ *       file stays focused on UI wiring,
+ *     - subscribes to the global `reportsUpdated` event so the screen
+ *       reflects external changes (sync drains, imports, edits).
+ *
+ *   Filtering & timestamps:
+ *     `filters.getImpactTimestampForReport` returns the mission impact
+ *     timestamp from STRUCTURED `fields.date + fields.impact`, falling
+ *     back to `createdAt`. Reports without enough info to build a
+ *     timestamp are excluded from the period filter on purpose.
+ *
+ * UA:
+ *   На цьому екрані дві вкладки («Статистика» і «Журнал») із спільним
+ *   фільтром періоду та пошуковим полем.
+ *
+ *   Що робить:
+ *     - читає всі звіти через `report-actions.listReports`,
+ *     - фільтрує за збереженим періодом (дата/час від/до) і пошуковим
+ *       запитом (по канонічному тексту),
+ *     - малює картки на вкладці «Журнал» і текстове зведення + плитки
+ *       KPI на «Статистиці»,
+ *     - на кожній картці — набір іконок-дій, що залежить від
+ *       `syncStatus` звіту:
+ *         DRAFT   → Надіслати / Редагувати / Запланувати
+ *         SCHEDULED → Скасувати / Редагувати
+ *         QUEUED / SENDING → Надіслати зараз / Скасувати чергу
+ *         SENT    → Виправити / Resync
+ *         RESYNC_REQUIRED → Надіслати зміни / Редагувати
+ *         ERROR   → Повторити / Редагувати
+ *         LOCKED  → Виправити
+ *     - вся статистика — у `journal-stats.js` (виокремлений модуль), щоб
+ *       цей файл лишався UI-орієнтованим,
+ *     - підписаний на глобальну подію `reportsUpdated` — щоб реагувати
+ *       на зовнішні зміни (drain черги, імпорт, редагування).
+ *
+ *   Фільтрація і timestamp:
+ *     `filters.getImpactTimestampForReport` дає момент ураження зі
+ *     СТРУКТУРНИХ `fields.date + fields.impact`, із резервом на
+ *     `createdAt`. Звіти без достатньої інформації для timestamp свідомо
+ *     виключаються з фільтра періоду.
+ *
  * @module screens/journal
  */
 
@@ -27,7 +88,7 @@ import {
   isWithinPeriodFilter,
   getImpactTimestampForReport,
 } from "../filters.js";
-import { mapResultToCategory, isKpiHit, isKpiLoss } from "../result-mapping.js";
+import { computeStats, buildSummaryText, updateKPI } from "../journal-stats.js";
 
 let initialized = false;
 
@@ -42,25 +103,6 @@ async function copyTextSmart(text) {
   setStatus(ok ? "Скопійовано." : "Помилка копіювання.");
 }
 
-/** Increment a Map<string, number> counter for key. */
-function inc(map, key) {
-  map.set(key, (map.get(key) || 0) + 1);
-}
-
-/** Update KPI dashboard widgets. */
-function updateKPI(total, hits, loss) {
-  const kpiTotal = $("kpiTotal");
-  const kpiHits = $("kpiHits");
-  const kpiLoss = $("kpiLoss");
-  const kpiRate = $("kpiRate");
-  if (kpiTotal) kpiTotal.textContent = String(total);
-  if (kpiHits) kpiHits.textContent = String(hits);
-  if (kpiLoss) kpiLoss.textContent = String(loss);
-  if (kpiRate) {
-    const rate = total > 0 ? Math.round((hits / total) * 100) : 0;
-    kpiRate.textContent = rate + "%";
-  }
-}
 
 /** @type {(() => void) | null} */
 let journalLayoutResizeBound = null;
@@ -457,29 +499,10 @@ async function renderForSelectedPeriod() {
     return;
   }
 
-  const counts = {
-    total: filtered.length,
-    drones: new Map(),
-    ammo: new Map(),
-    missionTypes: new Map(),
-    results: new Map(),
-  };
-  let hits = 0;
-  let loss = 0;
-  const allTexts = [];
+  const stats = computeStats(filtered);
 
   for (const item of filtered) {
     const f = normalizeFields(item.fields);
-    allTexts.push(item.text);
-
-    if (f.drone) inc(counts.drones, f.drone);
-    if (f.ammo) inc(counts.ammo, f.ammo);
-    if (f.missionType) inc(counts.missionTypes, f.missionType);
-    if (f.result) {
-      inc(counts.results, mapResultToCategory(f.result));
-      if (isKpiHit(f.result)) hits += 1;
-      if (isKpiLoss(f.result)) loss += 1;
-    }
 
     const dateHuman = f.date
       ? /^\d{4}-\d{2}-\d{2}$/.test(f.date)
@@ -526,34 +549,14 @@ async function renderForSelectedPeriod() {
     cardsEl.appendChild(card);
   }
 
-  const parts = [];
-  const fmtPeriod = (d, t) => (d ? (t ? `${d} ${t}` : d) : "");
-  parts.push(`Період: ${fmtPeriod(fromIso, fromTimeStr)} → ${fmtPeriod(toIso, toTimeStr)}`);
-  parts.push("");
-  parts.push(`Кількість вильотів: ${counts.total}`);
-
-  const block = (label, map) => {
-    if (!map.size) return;
-    const entries = Array.from(map.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, count]) => `- ${name}: ${count}`)
-      .join("\n");
-    parts.push(`${label}:\n${entries}`);
-  };
-
-  block("Бортів", counts.drones);
-  block("Боєприпасів", counts.ammo);
-  block("Типів місій", counts.missionTypes);
-  block("Результатів", counts.results);
-
-  summaryEl.textContent = parts.join("\n\n");
+  summaryEl.textContent = buildSummaryText(stats, period);
 
   const btnCopyAll = $("btnJournalCopyAll");
   if (btnCopyAll) {
-    btnCopyAll.onclick = () => copyTextSmart(allTexts.join("\n\n---\n\n"));
+    btnCopyAll.onclick = () => copyTextSmart(stats.allTexts.join("\n\n---\n\n"));
   }
 
-  updateKPI(counts.total, hits, loss);
+  updateKPI(stats.total, stats.hits, stats.loss);
 }
 
 /**

@@ -152,6 +152,7 @@ Report-UAV/
 │   │   ├── crypto.js       # PBKDF2 + AES-256-GCM
 │   │   ├── importExport.js # Експорт/імпорт v2
 │   │   └── legacy-import.js# Конвертер v1 → v2
+│   ├── journal-stats.js  # Статистика журналу (KPI, зведення)
 │   │
 │   └── screens/
 │       ├── mainForm.js     # Форма звіту
@@ -166,8 +167,8 @@ Report-UAV/
 │   │   ├── README.md       # Інструкція розгортання
 │   │   ├── Code.gs         # doPost, upsert, prepare_sheet
 │   │   └── Mgrs.gs         # MGRS → lat/lng для таблиці
-│   ├── google-sheets-sync-decomposition.md  # Архітектура sync
-│   └── google-sheets-sync-tz.md             # ТЗ sync
+│   ├── AUDIT.md              # Історія рефакторингу
+│   └── google-sheets-sync-tz.md  # ТЗ sync (бізнес-правила)
 │
 └── tools/
     └── verify-index.mjs    # HTML integrity check
@@ -189,8 +190,7 @@ Report-UAV/
 
 ## Відоме
 
-- **icon.png** відсутній у репозиторії, але вказаний у `manifest.json` і `sw.js`. Для коректної PWA-іконки додайте файл 512×512 у корінь.
-- **js/screens/image.png** — не використовується кодом; може бути видалений.
+- **icon.png** — дублікат `icon-512.png`; обидва вказані в manifest.json.
 
 ---
 

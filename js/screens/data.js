@@ -1,13 +1,63 @@
 /**
- * Data screen: Google Sheets integration settings + encrypted backup (export/import).
+ * Data & integration screen — three independent sections in one place.
  *
- * This screen was split out from journal.js and settings.js so that all
- * "data transfer" concerns live in one place, separate from the report list
- * and the field-list editor.
+ * EN:
+ *   Originally these features were scattered between the journal and the
+ *   settings screen. They were extracted here so all "data transfer"
+ *   concerns are reachable from a single tab.
  *
- * Sections:
- *   1. Google Sheets / Apps Script integration form
- *   2. Encrypted backup — export to file / import from file
+ *   Sections:
+ *     1) Google Sheets / Apps Script integration form
+ *        - Spreadsheet URL (UI link only — actual writes go to the script).
+ *        - Apps Script Web App URL (validated by `validateAppsScriptUrl`).
+ *        - Send mode: manual / immediate / delayed; delay minutes.
+ *        - "Lock after send" + "Corrections only after send" — these
+ *          control how SENT reports can be edited (full edit vs.
+ *          correction flow).
+ *        - "Test connection" → `testAppsScriptConnection` (ping action).
+ *        - "Save" → persists to IDB via `sync-settings.saveSyncSettings`.
+ *        - "Reset" → `getDefaultSyncSettings` + re-bind.
+ *
+ *     2) Encrypted backup — export / import
+ *        - Export: prompts for a passphrase TWICE (no recovery — typo
+ *          protection), encrypts via `crypto/importExport`, triggers a
+ *          file download.
+ *        - Import: lets the user pick a `.json` file, prompts for the
+ *          passphrase, decrypts, merges into the local DB (newest-wins
+ *          by id), notifies UI to refresh.
+ *
+ *     3) Danger zone — "Delete all reports"
+ *        - Confirms, calls `report-actions.deleteAllReports`, fires
+ *          `reportsChanged` so the journal reloads.
+ *        - Does NOT touch the spreadsheet on Google's side.
+ *
+ * UA:
+ *   Раніше ці три речі були розкидані по журналу та налаштуваннях. Тут
+ *   все звʼязано з «передачею даних» лежить в одній вкладці.
+ *
+ *   Розділи:
+ *     1) Google Sheets / Apps Script
+ *        - URL таблиці (лише UI-посилання — запис фактично йде у скрипт).
+ *        - URL Apps Script Web App (валідація — `validateAppsScriptUrl`).
+ *        - Режим відправки: manual / immediate / delayed; затримка в хв.
+ *        - «Lock after send» + «Corrections only after send» — задають
+ *          поведінку редагування SENT-звітів (повна правка vs. виправлення).
+ *        - «Перевірити з’єднання» → `testAppsScriptConnection` (ping).
+ *        - «Зберегти» → пише у IDB через `sync-settings.saveSyncSettings`.
+ *        - «Скинути» → `getDefaultSyncSettings` + повторний bind.
+ *
+ *     2) Зашифрований бекап — експорт / імпорт
+ *        - Експорт: запитує пароль ДВІЧІ (немає відновлення — захист
+ *          від друкарських помилок), шифрує через `crypto/importExport`,
+ *          тригерить завантаження файлу.
+ *        - Імпорт: користувач обирає `.json`, ми просимо пароль,
+ *          розшифровуємо, зливаємо у локальну БД (за id перемагає файл),
+ *          сповіщаємо UI про оновлення.
+ *
+ *     3) Небезпечна зона — «Видалити всі звіти»
+ *        - Підтвердження, виклик `report-actions.deleteAllReports`,
+ *          подія `reportsChanged` — журнал перевантажиться.
+ *        - Таблицю Google НЕ чіпає.
  *
  * @module screens/data
  */
@@ -32,7 +82,14 @@ let initialized = false;
 // Public init
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Called once from app.js after the DOM is ready. */
+/**
+ * EN: Single entry point — called once from `app.js` after the DOM is
+ *     ready. Idempotent. Wires the three sections (integration form,
+ *     export/import, delete-all).
+ * UA: Єдина точка входу — викликає `app.js` один раз після готовності DOM.
+ *     Ідемпотентна. Налаштовує три секції (інтеграція, експорт/імпорт,
+ *     "видалити все").
+ */
 export async function initDataScreen() {
   if (initialized) return;
   initialized = true;

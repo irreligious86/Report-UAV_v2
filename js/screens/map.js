@@ -1,6 +1,61 @@
 /**
- * Map screen: display all saved report points on Leaflet map.
- * Екран мапи: показ усіх збережених точок звітів на Leaflet-мапі.
+ * Map screen — Leaflet rendering of mission points filtered by period.
+ *
+ * EN:
+ *   The map shows reports as markers, grouped by exact MGRS-derived
+ *   coordinates so multiple sorties to the same point form a single
+ *   marker badge with the count. Marker styles:
+ *       1 sortie       → small cyan dot,
+ *       2..3 sorties   → green badge with the number,
+ *       4..5 sorties   → lime badge,
+ *       6+ sorties     → orange badge.
+ *
+ *   Filter: the same `loadPeriodFilter()` that drives the journal screen,
+ *   so what is visible in the journal matches what is visible on the map.
+ *
+ *   Coordinate conversion: `mgrs@2.1.0` → lat/lng (the lib lives on
+ *   `esm.sh`; bundled? no — dynamic import, see top imports). Reports
+ *   with malformed coords are counted as `invalidCount` and surfaced in
+ *   the status line.
+ *
+ *   Overlays:
+ *     - Group overlay: appears when the user clicks a marker that holds
+ *       multiple reports — lists them sorted by impact time (newest
+ *       first), each item opens the single-report overlay.
+ *     - Single overlay: shows full text, copy / share / delete buttons.
+ *
+ *   Fullscreen mode (`mapToggleFullscreen`) expands the map under the
+ *   title bar; navigating away resets it (see `resetMapLayout`,
+ *   referenced from `navigation.js`).
+ *
+ * UA:
+ *   Мапа показує звіти як маркери, згруповані за точними координатами
+ *   (MGRS → lat/lng) — кілька вильотів у ту саму точку формують одну
+ *   позначку зі змічальним числом. Стилі маркерів:
+ *       1 виліт      → маленька ціанова крапка,
+ *       2..3 вильоти → зелений знак із числом,
+ *       4..5         → лаймовий знак,
+ *       6+           → помаранчевий знак.
+ *
+ *   Фільтр: той самий `loadPeriodFilter()`, що й у журналі — тож що
+ *   видно у журналі, те й на мапі.
+ *
+ *   Конверсія координат: `mgrs@2.1.0` → lat/lng (бібліотека живе на
+ *   `esm.sh`, динамічний import — див. імпорти зверху). Звіти з кривими
+ *   координатами рахуються як `invalidCount` і виводяться у рядку
+ *   статусу.
+ *
+ *   Накладки (overlays):
+ *     - Group overlay: зʼявляється на кліку по маркеру з кількома
+ *       звітами — показує список (новіші зверху); тап по елементу
+ *       відкриває одиничну накладку.
+ *     - Single overlay: повний текст, кнопки «копіювати / поширити /
+ *       видалити».
+ *
+ *   Повноекранний режим (`mapToggleFullscreen`) розгортає мапу під
+ *   заголовком; перехід на інший екран згортає її (див. `resetMapLayout`,
+ *   використовує `navigation.js`).
+ *
  * @module screens/map
  */
 
