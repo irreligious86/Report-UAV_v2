@@ -78,7 +78,7 @@
 
 import { STREAM_PLACEHOLDER } from "./constants.js";
 import { $, isoToDDMMYYYY } from "./utils.js";
-import { parseCounterRaw } from "./counter.js";
+import { getCrewFallback, parseCounterRaw } from "./counter.js";
 import { buildCoordsOrError } from "./coords.js";
 
 /**
@@ -237,13 +237,14 @@ export function buildReportText(fields) {
  * @returns {ReportFields|null}
  */
 export function collectFieldsFromMainForm() {
-  if ($("crew").value === "") $("crew").value = "Дакар";
+  const crewInput = $("crew");
+  if (crewInput && crewInput.value === "") crewInput.value = getCrewFallback();
   const coords = buildCoordsOrError();
   if (!coords) return null;
 
   const parsedCounter = parseCounterRaw($("crewCounter").value);
   return {
-    crew: $("crew").value.trim() || "",
+    crew: crewInput ? crewInput.value.trim() || "" : "",
     crewCounter: parsedCounter.empty ? null : parsedCounter.value,
     date: ($("datePicker").value || "").trim(),
     drone: $("drone").value || "",

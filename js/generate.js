@@ -76,7 +76,7 @@ import {
   setStatus,
   refreshMissionDateForNewDay,
 } from "./utils.js";
-import { saveCounterMaybe } from "./counter.js";
+import { saveCounterMaybe, saveCrewName } from "./counter.js";
 import { createAndStoreReport } from "./report-actions.js";
 import { collectFieldsFromMainForm, buildReportText } from "./report-format.js";
 import { copyText } from "./clipboard.js";
@@ -162,6 +162,7 @@ async function doGenerate_() {
 
   // Persist to IndexedDB; sync queue / immediate send handled inside
   await createAndStoreReport(fields);
+  saveCrewName(fields.crew);
 
   // Advance counter and reset date AFTER successful save
   advanceCrewCounterAfterSnapshot_(fields);

@@ -13,6 +13,9 @@ export const CONFIG_URL = "./config.json";
 /** EN: localStorage key for crew flight counter (1–25); bump version to invalidate. UA: Ключ лічильника вильотів екіпажу; змінити версію — скинути збережене значення. */
 export const STORAGE_KEY_COUNTER = "uav_report_counter_v13";
 
+/** EN: localStorage key for last-used crew callsign. UA: Ключ останнього позивного екіпажу. */
+export const STORAGE_KEY_CREW_NAME = "uav_crew_name_v1";
+
 /** EN: Default stream field placeholder. UA: Плейсхолдер поля «Стрім». */
 export const STREAM_PLACEHOLDER = "---";
 

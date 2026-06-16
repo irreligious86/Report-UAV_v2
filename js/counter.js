@@ -31,8 +31,11 @@
  */
 
 import { $ } from "./utils.js";
-import { STORAGE_KEY_COUNTER } from "./constants.js";
+import { STORAGE_KEY_COUNTER, STORAGE_KEY_CREW_NAME } from "./constants.js";
 import { updateEmptyHighlights } from "./config.js";
+
+/** EN: Default callsign when nothing is stored yet. UA: Позивний за замовчуванням, якщо ще нічого не збережено. */
+const DEFAULT_CREW_NAME = "Дакар";
 
 /**
  * EN: Parses raw counter input. Three return shapes:
@@ -86,6 +89,51 @@ export function loadCounter() {
   }
   const parsed = parseCounterRaw(raw);
   el.value = (parsed.ok && !parsed.empty) ? String(parsed.value) : "";
+}
+
+/**
+ * EN: Returns the saved crew callsign, or {@link DEFAULT_CREW_NAME} if none.
+ * UA: Повертає збережений позивний екіпажу або {@link DEFAULT_CREW_NAME}.
+ * @returns {string}
+ */
+export function getCrewFallback() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY_CREW_NAME);
+    if (stored && stored.trim()) return stored.trim();
+  } catch {
+    /* localStorage unavailable */
+  }
+  return DEFAULT_CREW_NAME;
+}
+
+/**
+ * EN: Loads the saved crew callsign into `#crew` on form init.
+ * UA: Завантажує збережений позивний у `#crew` при ініціалізації форми.
+ */
+export function loadCrewName() {
+  const el = $("crew");
+  if (!el) return;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY_CREW_NAME);
+    if (stored && stored.trim()) el.value = stored.trim();
+  } catch {
+    /* localStorage unavailable */
+  }
+}
+
+/**
+ * EN: Persists the crew callsign after a successful report.
+ * UA: Зберігає позивний екіпажу після успішного звіту.
+ * @param {string} name
+ */
+export function saveCrewName(name) {
+  const trimmed = String(name || "").trim();
+  if (!trimmed) return;
+  try {
+    localStorage.setItem(STORAGE_KEY_CREW_NAME, trimmed);
+  } catch {
+    /* localStorage unavailable */
+  }
 }
 
 /**
