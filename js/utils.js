@@ -11,6 +11,8 @@
  * @module utils
  */
 
+import { isoToDdMmYyyy, normalizeDateToISO } from "./date-utils.js";
+
 /**
  * EN: Shorthand for `document.getElementById`. The whole codebase uses `$`
  *     to read DOM nodes — keep it that way for grep-ability.
@@ -84,19 +86,25 @@ export function todayISO() {
  */
 export function refreshMissionDateForNewDay() {
   const today = todayISO();
+  const todayUi = isoToDDMMYYYY(today);
   const dp = $("datePicker");
   if (!(dp instanceof HTMLInputElement)) return;
 
   const anchor = sessionStorage.getItem(SESSION_DATE_ANCHOR_KEY);
   if (anchor !== today) {
-    dp.value = today;
+    dp.value = todayUi;
     sessionStorage.setItem(SESSION_DATE_ANCHOR_KEY, today);
     return;
   }
 
   if (!String(dp.value || "").trim()) {
-    dp.value = today;
+    dp.value = todayUi;
+    return;
   }
+
+  const raw = String(dp.value || "").trim();
+  const iso = normalizeDateToISO(raw);
+  if (iso) dp.value = isoToDdMmYyyy(iso);
 }
 
 /**
@@ -109,9 +117,7 @@ export function refreshMissionDateForNewDay() {
  * @returns {string}
  */
 export function isoToDDMMYYYY(iso) {
-  if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
-  const [y, m, d] = iso.split("-");
-  return `${d}.${m}.${y}`;
+  return isoToDdMmYyyy(iso);
 }
 
 /**

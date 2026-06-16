@@ -56,6 +56,7 @@ import {
   saveConfigOverrides,
   applyConfigWithOverrides,
 } from "../config.js";
+import { FORM_TEXT_FIELD_MAX_LENGTH } from "../constants.js";
 // Google Sheets integration is handled by screens/data.js
 
 let initialized = false;
@@ -75,6 +76,18 @@ let overrides = null;
 let effectiveLists = null;
 
 let sortableInstance = null;
+
+const LIST_KEYS_MAX_32 = new Set(["drones", "missionTypes", "ammo"]);
+
+function updateListNewItemMaxLength() {
+  const input = $("listNewItem");
+  if (!input) return;
+  if (LIST_KEYS_MAX_32.has(activeListKey)) {
+    input.maxLength = FORM_TEXT_FIELD_MAX_LENGTH;
+  } else {
+    input.removeAttribute("maxlength");
+  }
+}
 
 function normalizeValue(s) {
   return String(s || "").trim();
@@ -119,6 +132,7 @@ function renderTabs() {
       renderTabs();
       renderHint();
       renderItems();
+      updateListNewItemMaxLength();
     };
 
     tabsEl.appendChild(btn);
@@ -242,6 +256,10 @@ function addItem(raw) {
     setStatus("Порожнє значення не додаємо.");
     return;
   }
+  if (LIST_KEYS_MAX_32.has(activeListKey) && v.length > FORM_TEXT_FIELD_MAX_LENGTH) {
+    setStatus(`Максимум ${FORM_TEXT_FIELD_MAX_LENGTH} символів.`);
+    return;
+  }
 
   const current = getList(activeListKey);
 
@@ -324,6 +342,7 @@ export async function initSettingsScreen() {
   renderTabs();
   renderHint();
   renderItems();
+  updateListNewItemMaxLength();
 
   const addBtn = $("listAddBtn");
   const input = $("listNewItem");

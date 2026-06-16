@@ -61,12 +61,13 @@ autocomplete="off"
 />
 </div>
 
+<div class="error" id="crewError"></div>
 <div class="error" id="counterError"></div>
 </label>
 
 <label>
 Дата:
-<input type="date" id="datePicker"/>
+<input type="text" id="datePicker" class="ui-date" inputmode="numeric" placeholder="ДД.ММ.РРРР" maxlength="10" autocomplete="off"/>
 </label>
 
 <label>
@@ -85,7 +86,7 @@ autocomplete="off"
 Час зльоту:
 
 <div class="row">
-<input type="time" id="takeoff"/>
+<input type="text" id="takeoff" class="ui-time" inputmode="numeric" placeholder="ГГ:ХХ" maxlength="5" autocomplete="off"/>
 <button class="btn" type="button" id="btnNowTakeoff">Зараз</button>
 </div>
 </label>
@@ -94,7 +95,7 @@ autocomplete="off"
 Час ураження/втрати:
 
 <div class="row">
-<input type="time" id="impact"/>
+<input type="text" id="impact" class="ui-time" inputmode="numeric" placeholder="ГГ:ХХ" maxlength="5" autocomplete="off"/>
 <button class="btn" type="button" id="btnNowImpact">Зараз</button>
 </div>
 </label>
@@ -133,7 +134,7 @@ autocomplete="off"/>
 id="stream"
 value="---"
 placeholder="---"
-maxlength="18"
+maxlength="32"
 autocomplete="off"
 spellcheck="false"
 />
@@ -174,13 +175,13 @@ readonly></textarea>
 Період:
   <div class="journal-period-block">
     <div class="row">
-      <input type="date" id="journalFrom"/>
-      <input type="date" id="journalTo"/>
+      <input type="text" id="journalFrom" class="ui-date" inputmode="numeric" placeholder="ДД.ММ.РРРР" maxlength="10" autocomplete="off"/>
+      <input type="text" id="journalTo" class="ui-date" inputmode="numeric" placeholder="ДД.ММ.РРРР" maxlength="10" autocomplete="off"/>
     </div>
 
     <div class="row" style="margin-top:10px;">
-      <input type="time" id="journalTimeFrom"/>
-      <input type="time" id="journalTimeTo"/>
+      <input type="text" id="journalTimeFrom" class="ui-time" inputmode="numeric" placeholder="ГГ:ХХ" maxlength="5" autocomplete="off"/>
+      <input type="text" id="journalTimeTo" class="ui-time" inputmode="numeric" placeholder="ГГ:ХХ" maxlength="5" autocomplete="off"/>
     </div>
   </div>
 </label>
@@ -547,7 +548,7 @@ title="Зберегти зміни"
 
 <p><strong>Звіт БПЛА</strong> — це односторінковий веб-додаток для швидкого складання <em>структурованих</em> звітів про вилоти БПЛА прямо в браузері. Кожен звіт — окремий запис із полями форми, версією та (за потреби) статусом синхронізації з Google Таблицями. Роботу розраховано на польові умови: телефон або планшет, стійка робота без стабільного інтернету після першого завантаження.</p>
 
-<p><strong>Звіти</strong> зберігаються в <strong>IndexedDB</strong> (база <code>report_uav_db_v2</code>) — це основне локальне сховище журналу, черги відправки та налаштувань інтеграції. <strong>Лічильник екіпажу</strong> та <strong>перевизначення списків</strong> форми лишаються в <code>localStorage</code> цього браузера. Дані за замовчуванням <strong>не надсилаються</strong> на сервер розробника. Відправка в таблицю — лише на ваш URL Google Apps Script; налаштування в меню <strong>«Дані та інтеграція»</strong> (див. розділ 4). Перенести архів між пристроями: зашифрований експорт/імпорт на тому ж екрані. Зашифровані копії зі старого застосунку (v1) також підтримуються поряд з v2.</p>
+<p><strong>Звіти</strong> зберігаються в <strong>IndexedDB</strong> (база <code>report_uav_db_v2</code>) — це основне локальне сховище журналу, черги відправки та налаштувань інтеграції. <strong>Позивний екіпажу</strong>, <strong>лічильник вильотів</strong> та <strong>перевизначення списків</strong> форми лишаються в <code>localStorage</code> цього браузера. Дані за замовчуванням <strong>не надсилаються</strong> на сервер розробника. Відправка в таблицю — лише на ваш URL Google Apps Script; налаштування в меню <strong>«Дані та інтеграція»</strong> (див. розділ 4). Перенести архів між пристроями: зашифрований експорт/імпорт на тому ж екрані. Зашифровані копії зі старого застосунку (v1) також підтримуються поряд з v2.</p>
 
 <div class="help-feature-grid" aria-label="Коротко про можливості">
   <div class="help-feature">
@@ -606,12 +607,12 @@ title="Зберегти зміни"
 <div class="help-sub-body">
 <p class="help-kicker"><em>Поля та їх зміст:</em></p>
 <p class="help-bullets">
-• <strong>Екіпаж</strong> — позивний (текстовий рядок) і при потребі <strong>лічильник вильотів</strong> (число 1–25 у дужках біля позивного). Лічильник зберігається між сесіями; після успішного «Готово» він може автоматично збільшитися на 1 (до верхньої межі).<br>
-• <strong>Дата</strong> — календарна дата місії. Відображається у формі з урахуванням <em>локального</em> часу пристрою (не UTC). Поле періодично узгоджується з «сьогодні» при відкритті додатку, поверненні на цей екран, поверненні вкладки у фокус і безпосередньо перед формуванням звіту, щойно настав новий календарний день або поле було порожнє; після «Готово» дата готується для наступного запису (поточний день). Якщо в межах однієї доби ви вручну вибрали іншу дату, вона не перезаписується автоматично.<br>
+• <strong>Екіпаж</strong> — <strong>обов’язковий</strong> позивний (текстовий рядок; зберігається між сесіями в цьому браузері) і при потребі <strong>лічильник вильотів</strong> (число 1–25 у дужках біля позивного). Лічильник також зберігається між сесіями; після успішного «Готово» він може автоматично збільшитися на 1 (до верхньої межі).<br>
+• <strong>Дата</strong> — календарна дата місії у форматі <strong>ДД.ММ.РРРР</strong> (наприклад <code>31.12.2006</code>), локальний час пристрою (не UTC). Поле періодично узгоджується з «сьогодні» при відкритті додатку, поверненні на цей екран, поверненні вкладки у фокус і безпосередньо перед формуванням звіту, щойно настав новий календарний день або поле було порожнє; після «Готово» дата готується для наступного запису (поточний день). Якщо в межах однієї доби ви вручну ввели іншу дату, вона не перезаписується автоматично.<br>
 • <strong>Борт</strong> — вибір зі списку дронів; утримування перед вводом увімкнює довільний текст.<br>
 • <strong>Характер</strong> — тип місії зі списку або довільний ввід (утримати перед вводом).<br>
-• <strong>Час зльоту</strong> — вручну або кнопка «Зараз» (формат ГГ:ХХ).<br>
-• <strong>Час ураження/втрати</strong> — так само, з кнопкою «Зараз»; саме цей час разом з датою використовується в журналі, статистиці та на карті для прив’язки до періоду фільтра.<br>
+• <strong>Час зльоту</strong> — вручну або кнопка «Зараз» (формат <strong>ГГ:ХХ</strong>, 24 години).<br>
+• <strong>Час ураження/втрати</strong> — так само, з кнопкою «Зараз» (<strong>ГГ:ХХ</strong>); саме цей час разом з датою використовується в журналі, статистиці та на карті для прив’язки до періоду фільтра.<br>
 • <strong>Координати</strong> — формат MGRS: префікс із списку + два блоки по 5 цифр (easting) та (northing).<br>
 • <strong>Боєприпас</strong> — зі списку або довільний ввід.<br>
 • <strong>Стрім</strong> — посилання на потік або плейсхолдер «---».<br>
@@ -658,7 +659,7 @@ title="Зберегти зміни"
 <summary class="help-sub-summary">Фільтр періоду та KPI</summary>
 <div class="help-sub-body">
 <p class="help-kicker"><em>Фільтр періоду</em></p>
-<p>Дата «від / до» і час «від / до» будуються зі структурованих полів звіту: <strong>дата місії</strong> та <strong>час ураження/втрати</strong> (не з «ручного» парсингу довільного тексту). За замовчуванням зазвичай обрано поточний місяць. Кнопка «Показати» фіксує умови; лічильник «Відібрано звітів: N із M» показує, скільки записів потрапило під фільтр порівняно з усім архівом.</p>
+<p>Дата «від / до» у форматі <strong>ДД.ММ.РРРР</strong>, час «від / до» — <strong>ГГ:ХХ</strong> (24 години). Фільтр будується зі структурованих полів звіту: <strong>дата місії</strong> та <strong>час ураження/втрати</strong> (не з «ручного» парсингу довільного тексту). При відкритті екрана журналу період за замовчуванням скидається на <strong>поточний день</strong> (00:00–23:59). Кнопка «Показати» фіксує умови; лічильник «Відібрано звітів: N із M» показує, скільки записів потрапило під фільтр порівняно з усім архівом.</p>
 
 <p class="help-kicker"><em>KPI (плитки зверху):</em></p>
 <p class="help-bullets">
@@ -759,7 +760,7 @@ title="Зберегти зміни"
 <ol class="help-stepper">
   <li><span class="help-stepper-num">1</span>Створіть <strong>порожню таблицю</strong> у Google Таблицях, скопіюйте її посилання.</li>
   <li><span class="help-stepper-num">2</span>У тій самій таблиці: <strong>Розширення → Apps Script</strong>. Відкриється редактор скриптів.</li>
-  <li><span class="help-stepper-num">3</span>Вставте у файл <code>Code.gs</code> код із репозиторію застосунку — <code>docs/apps-script/Code.gs</code> (там же є <code>Mgrs.gs</code> із MGRS-хелперами).</li>
+  <li><span class="help-stepper-num">3</span>Вставте у файл <code>Code.gs</code> код із репозиторію <strong>v2</strong> — <code>docs/apps-script/Code.gs</code> у <a href="https://github.com/irreligious86/Report-UAV_v2" target="_blank" rel="noopener">github.com/irreligious86/Report-UAV_v2</a> (там же є <code>Mgrs.gs</code> із MGRS-хелперами).</li>
   <li><span class="help-stepper-num">4</span>Натисніть <strong>«Розгорнути → Створити розгортання»</strong>. Тип — <em>«Веб-додаток»</em>. <strong>Виконувати від імені:</strong> «Я». <strong>Хто має доступ:</strong> «Будь-хто» (інакше POST-запити з пристрою не пройдуть).</li>
   <li><span class="help-stepper-num">5</span>Google попросить дозвіл на доступ скрипта до вашої таблиці — підтвердіть. У вас зʼявиться <strong>URL веб-додатку</strong> вигляду <code>https://script.google.com/macros/s/.../exec</code>.</li>
   <li><span class="help-stepper-num">6</span>У застосунку: <strong>«Дані та інтеграція»</strong>, вставте посилання на таблицю та URL Apps Script, натисніть <strong>«Зберегти»</strong>, потім <strong>«Перевірити з’єднання»</strong>. Якщо повернулось «✓» — все готове.</li>
@@ -956,6 +957,19 @@ title="Зберегти зміни"
 </button>
 </div>
 
+<div class="pwa-update-row">
+  <button class="pwa-install-btn pwa-update-btn" type="button" id="btnPwaUpdate" hidden>
+    <svg class="pwa-install-btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="23 4 23 10 17 10"/>
+      <polyline points="1 20 1 14 7 14"/>
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+    </svg>
+    Підтягнути оновлення
+  </button>
+  <div class="pwa-update-status" id="pwaUpdateStatus" aria-live="polite"></div>
+</div>
+
 <!-- EN: Visible status chip when installation is impossible / already done.
      UA: Видимий чіп-статус, коли встановлення неможливе або вже зроблене. -->
 <div class="pwa-status" id="pwaStatus" hidden>
@@ -1015,7 +1029,7 @@ title="Зберегти зміни"
 
 <p class="help-subblock"><strong class="help-subblock-label">Навіщо встановлювати?</strong> Швидкий запуск з іконки на початковому екрані; стійкіша робота офлайн після першого завантаження; менший ризик «загубити» вкладку серед сайтів; повноекранний режим без адресного рядка.</p>
 
-<p class="help-callout help-callout--warn"><strong>Важливо:</strong> перший візит бажано з інтернетом, щоб сервіс-воркер і файли закешувались; для <strong>index.html</strong> і <strong>js/app.js</strong> застосунок намагається спочатку взяти свіжу копію з мережі, щоб після оновлення не зависати на битій сторінці в кеші. Якщо після оновлення щось «ламається» — закрийте вкладку, очистіть кеш сайту або перевстановіть PWA.</p>
+<p class="help-callout help-callout--warn"><strong>Важливо:</strong> перший візит бажано з інтернетом, щоб сервіс-воркер і файли закешувались. Після оновлення на GitHub Pages не перевстановлюйте PWA — відкрийте розділ <strong>«Встановити на смартфон (PWA)»</strong> і натисніть <strong>«Підтягнути оновлення»</strong> (потрібен інтернет). Якщо з’явиться нова версія, кнопка зміниться на <strong>«Застосувати оновлення»</strong> і перезавантажить застосунок із свіжими файлами.</p>
 </div>
 </details>
 
@@ -1071,11 +1085,11 @@ title="Зберегти зміни"
 </a>
 </li>
 <li>
-<a class="help-contact-card" href="https://github.com/irreligious86/Report-UAV" target="_blank" rel="noopener">
+<a class="help-contact-card" href="https://github.com/irreligious86/Report-UAV_v2" target="_blank" rel="noopener">
 <span class="help-contact-icon" aria-hidden="true">GH</span>
 <span class="help-contact-body">
-<span class="help-contact-label">GitHub</span>
-<span class="help-contact-value">github.com/irreligious86/Report-UAV</span>
+<span class="help-contact-label">GitHub (v2)</span>
+<span class="help-contact-value">github.com/irreligious86/Report-UAV_v2</span>
 </span>
 </a>
 </li>

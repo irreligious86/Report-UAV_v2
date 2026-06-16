@@ -295,8 +295,8 @@ button:active {
   align-items: stretch;
 }
 
-.journal-period-block input[type="date"],
-.journal-period-block input[type="time"] {
+.journal-period-block input.ui-date,
+.journal-period-block input.ui-time {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
@@ -609,10 +609,10 @@ button:active {
   max-height: none;
 }
 
-/* Make native calendar/time icons visible on dark background */
-input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="time"]::-webkit-calendar-picker-indicator {
-  filter: invert(1) opacity(0.85);
+/* Date/time text fields — no native picker icons */
+input.ui-date,
+input.ui-time {
+  font-variant-numeric: tabular-nums;
 }
 
 /* ========================================================= */
@@ -2751,6 +2751,33 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   border-radius: 50%;
   background: rgba(85, 243, 255, 0.85);
   box-shadow: 0 0 10px rgba(85, 243, 255, 0.45);
+}
+
+.pwa-update-row {
+  margin: 0 0 14px;
+}
+
+.pwa-update-row .pwa-update-btn {
+  width: 100%;
+  margin: 0 0 10px;
+}
+
+.pwa-update-btn--ready {
+  border-color: rgba(255, 196, 0, 0.45);
+  background:
+    linear-gradient(145deg, rgba(255, 196, 0, 0.12), rgba(10, 15, 16, 0.85));
+  color: #ffd966;
+}
+
+.pwa-update-status {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: rgba(122, 167, 169, 0.96);
+  min-height: 1.25em;
+}
+
+.pwa-update-status:empty {
+  display: none;
 }
 
 .pwa-guides {

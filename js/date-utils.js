@@ -76,3 +76,71 @@ export function isoToDdMmYyyy(iso) {
   const [y, m, d] = iso.split("-");
   return `${d}.${m}.${y}`;
 }
+
+/** @alias isoToDdMmYyyy */
+export const formatUiDateFromIso = isoToDdMmYyyy;
+
+/** @alias normalizeDateToISO */
+export const parseUiDateToIso = normalizeDateToISO;
+
+/**
+ * EN: Normalizes a time string to "HH:MM" (24h). Returns "" when invalid.
+ * UA: Нормалізує час до «ГГ:ХХ» (24 год). Порожній рядок, якщо невірний ввід.
+ * @param {unknown} raw
+ * @returns {string}
+ */
+export function normalizeTime24(raw) {
+  const s = String(raw ?? "").trim();
+  if (!s) return "";
+  const m = s.match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return "";
+  const h = parseInt(m[1], 10);
+  const min = parseInt(m[2], 10);
+  if (!Number.isFinite(h) || !Number.isFinite(min) || h < 0 || h > 23 || min < 0 || min > 59) {
+    return "";
+  }
+  return `${pad2(h)}:${pad2(min)}`;
+}
+
+/** @alias normalizeTime24 */
+export const formatUiTime = normalizeTime24;
+
+/**
+ * EN: Formats an ISO datetime string for UI as "DD.MM.YYYY HH:MM" (local).
+ * UA: Форматує ISO datetime для UI як «ДД.ММ.РРРР ГГ:ХХ» (локально).
+ * @param {string} iso
+ * @returns {string}
+ */
+export function formatIsoDateTimeForUi(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  const dateIso = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  return `${isoToDdMmYyyy(dateIso)} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+/**
+ * EN: On blur, reformat a date input to padded "DD.MM.YYYY" when parseable.
+ * UA: При blur переформатовує поле дати у «ДД.ММ.РРРР», якщо ввід розпізнано.
+ * @param {HTMLElement | null} el
+ */
+export function attachUiDateInput(el) {
+  if (!(el instanceof HTMLInputElement)) return;
+  el.addEventListener("blur", () => {
+    const iso = normalizeDateToISO(el.value);
+    if (iso) el.value = isoToDdMmYyyy(iso);
+  });
+}
+
+/**
+ * EN: On blur, reformat a time input to "HH:MM" (24h) when parseable.
+ * UA: При blur переформатовує поле часу у «ГГ:ХХ» (24 год), якщо ввід розпізнано.
+ * @param {HTMLElement | null} el
+ */
+export function attachUiTimeInput(el) {
+  if (!(el instanceof HTMLInputElement)) return;
+  el.addEventListener("blur", () => {
+    const t = normalizeTime24(el.value);
+    if (t) el.value = t;
+  });
+}

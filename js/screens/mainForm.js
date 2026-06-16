@@ -38,6 +38,7 @@
  */
 
 import { $, nowTime, setStatus, refreshMissionDateForNewDay } from "../utils.js";
+import { attachUiDateInput, attachUiTimeInput } from "../date-utils.js";
 import { loadCounter, loadCrewName, persistCrewField, sanitizeCounterField } from "../counter.js";
 import { normalize5 } from "../coords.js";
 import {
@@ -48,6 +49,7 @@ import {
 } from "../config.js";
 import { enableLongPressToEdit } from "../longPressEdit.js";
 import { generate } from "../generate.js";
+import { FORM_TEXT_FIELD_MAX_LENGTH } from "../constants.js";
 
 /**
  * EN: Tracks whether the user has started typing in `easting`. When they
@@ -75,8 +77,12 @@ export async function initMainFormScreen() {
 
   const datePicker = $("datePicker");
   const takeoff = $("takeoff");
+  const impact = $("impact");
   if (datePicker) refreshMissionDateForNewDay();
   if (takeoff) takeoff.value = nowTime();
+  attachUiDateInput(datePicker);
+  attachUiTimeInput(takeoff);
+  attachUiTimeInput(impact);
 
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
@@ -182,9 +188,9 @@ export async function initMainFormScreen() {
   }
 
   // Enable long-press-to-edit for select fields as before.
-  enableLongPressToEdit("ammo", "ammoList", 50);
-  enableLongPressToEdit("drone", "droneList", 50);
-  enableLongPressToEdit("missionType", "missionTypeList", 50);
+  enableLongPressToEdit("ammo", "ammoList", FORM_TEXT_FIELD_MAX_LENGTH);
+  enableLongPressToEdit("drone", "droneList", FORM_TEXT_FIELD_MAX_LENGTH);
+  enableLongPressToEdit("missionType", "missionTypeList", FORM_TEXT_FIELD_MAX_LENGTH);
   enableLongPressToEdit("result", "resultList", 100);
 
   updateEmptyHighlights();

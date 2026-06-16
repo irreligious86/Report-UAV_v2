@@ -7,7 +7,7 @@
  * UA: У `ASSETS` мають бути всі власні `.js`, які імпортує застосунок. Якщо
  *     модуль відсутній — офлайн може зламатися. Підвищуйте `CACHE_NAME` при змінах.
  */
-const CACHE_NAME = 'uav-report-v25';
+const CACHE_NAME = 'uav-report-v31';
 const ASSETS = [
   './',
   './index.html',
@@ -45,6 +45,7 @@ const ASSETS = [
   './js/sync-queue-processor.js',
   './js/navigation.js',
   './js/pwa-install.js',
+  './js/pwa-update.js',
   './js/result-mapping.js',
   './js/journal-stats.js',
   './js/streams.js',
@@ -66,15 +67,21 @@ self.addEventListener('install', (event) => {
   );
 });
 
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((names) =>
-      Promise.all(
-        names
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
-      )
-    )
+    (async () => {
+      const names = await caches.keys();
+      await Promise.all(
+        names.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))
+      );
+      await self.clients.claim();
+    })()
   );
 });
 

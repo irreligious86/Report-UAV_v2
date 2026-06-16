@@ -21,11 +21,11 @@ import {
   combineDateAndTime,
   normalizeDateToISO as _normalizeDateToISO,
 } from "./date-utils.js";
-import { pad2 } from "./utils.js";
+import { todayISO } from "./utils.js";
 import * as logger from "./logger.js";
 
 /** EN: localStorage key for the saved filter. / UA: Ключ у localStorage для збереженого фільтра. */
-const STORAGE_KEY_PERIOD_FILTER = "uav_period_filter_v1";
+const STORAGE_KEY_PERIOD_FILTER = "uav_period_filter_v2";
 
 /**
  * @typedef {Object} PeriodFilter
@@ -36,23 +36,15 @@ const STORAGE_KEY_PERIOD_FILTER = "uav_period_filter_v1";
  */
 
 /**
- * EN: Returns the default filter — the entire current month 00:00–23:59.
- * UA: Повертає фільтр за замовчуванням — увесь поточний місяць 00:00–23:59.
+ * EN: Returns the default filter — today 00:00–23:59 (full current day, local time).
+ * UA: Повертає фільтр за замовчуванням — сьогодні 00:00–23:59 (повні поточні доби).
  * @returns {PeriodFilter}
  */
 export function getDefaultPeriodFilter() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const monthIndex = now.getMonth(); // 0..11
-
-  const month = pad2(monthIndex + 1);
-  const firstDay = "01";
-  const lastDayDate = new Date(year, monthIndex + 1, 0); // EN: last day of the month. / UA: останній день місяця.
-  const lastDay = pad2(lastDayDate.getDate());
-
+  const today = todayISO();
   return {
-    fromDate: `${year}-${month}-${firstDay}`,
-    toDate: `${year}-${month}-${lastDay}`,
+    fromDate: today,
+    toDate: today,
     fromTime: "00:00",
     toTime: "23:59",
   };
@@ -73,8 +65,8 @@ export function loadPeriodFilter() {
     const parsed = JSON.parse(raw);
     const def = getDefaultPeriodFilter();
     return {
-      fromDate: parsed?.fromDate || def.fromDate,
-      toDate: parsed?.toDate || def.toDate,
+      fromDate: _normalizeDateToISO(parsed?.fromDate) || def.fromDate,
+      toDate: _normalizeDateToISO(parsed?.toDate) || def.toDate,
       fromTime: parsed?.fromTime || def.fromTime,
       toTime: parsed?.toTime || def.toTime,
     };
@@ -93,8 +85,8 @@ export function loadPeriodFilter() {
 export function savePeriodFilter(filter) {
   const def = getDefaultPeriodFilter();
   const normalized = {
-    fromDate: filter?.fromDate || def.fromDate,
-    toDate: filter?.toDate || def.toDate,
+    fromDate: _normalizeDateToISO(filter?.fromDate) || def.fromDate,
+    toDate: _normalizeDateToISO(filter?.toDate) || def.toDate,
     fromTime: filter?.fromTime || def.fromTime,
     toTime: filter?.toTime || def.toTime,
   };
