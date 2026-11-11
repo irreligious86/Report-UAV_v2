@@ -394,26 +394,20 @@ aria-label="Звіти у періоді"
 
 <div class="listsEditorHeader">
 <h2>Редактор списків</h2>
-
-<button
-id="listsQuickSaveBtn"
-type="button"
-title="Зберегти зміни"
->
-💾
-</button>
 </div>
 
 <div id="listsTabs"></div>
 
-<ul id="listsItems"></ul>
-
 <div id="listsControls">
-<input id="listNewItem" type="text" placeholder="Нове значення">
+<input id="listNewItem" type="text" placeholder="Нове значення" autocomplete="off" enterkeyhint="done">
 <button id="listAddBtn" type="button">Додати</button>
 </div>
 
-<div class="status" id="settingsStatus"></div>
+<div class="status lists-status" id="settingsStatus" aria-live="polite"></div>
+
+<ul id="listsItems"></ul>
+
+<p class="settings-note lists-autosave-note">Усі зміни зберігаються автоматично й одразу потрапляють у форму звіту.</p>
 
 </div>
 </div>
@@ -837,10 +831,11 @@ title="Зберегти зміни"
 • типи місій (Характер);<br>
 • боєприпаси;<br>
 • результати місії;<br>
-• префікси MGRS;<br>
-• стріми.
+• префікси MGRS.
 </p>
-<p>Елементи можна додавати, видаляти й переставляти перетягуванням. Збережені на пристрої перевизначення мають пріоритет над початковим файлом <code>config.json</code>; є можливість скинути списки до базових значень.</p>
+<p>Елементи можна додавати, видаляти й переставляти перетягуванням за ручку ліворуч. <strong>Новий пункт</strong> вводиться у полі над списком і стає <strong>першим</strong> у списку (і першим у випадаючому списку форми); за потреби перетягніть його на інше місце.</p>
+<p class="help-callout help-callout--action"><strong>Автозбереження.</strong> Окремої кнопки «зберегти» немає: кожна дія — додати, видалити, переставити — зберігається одразу і так само одразу з’являється у формі звіту. Уже заповнені поля форми при цьому не скидаються.</p>
+<p>Збережені на пристрої перевизначення мають пріоритет над початковим файлом <code>config.json</code>.</p>
 
 <p class="help-callout help-callout--tip">Інтеграція з Google Таблицями перенесена на екран <strong>«Дані та інтеграція»</strong> (разом із резервним копіюванням). Екран <strong>«Налаштування списків»</strong> містить лише редактор значень для полів форми.</p>
 </div>

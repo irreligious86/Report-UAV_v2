@@ -1551,28 +1551,6 @@ input.ui-time {
   color: var(--label);
 }
 
-#listsQuickSaveBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-  font-size: 18px;
-  cursor: pointer;
-}
-
-#listsQuickSaveBtn:hover {
-  background: rgba(255, 255, 255, 0.14);
-}
-
-#listsQuickSaveBtn.is-saved {
-  background: rgba(60, 180, 90, 0.22);
-}
-
 #listsTabs {
   display: flex;
   flex-wrap: wrap;
@@ -1631,12 +1609,50 @@ input.ui-time {
   gap: 8px;
 }
 
-/* Add area */
+/* Add area (sits above the list — a new item appears right below it) */
 #listsControls {
   display: flex;
   gap: 10px;
   align-items: center;
   margin-top: 10px;
+}
+
+/* Autosave feedback line under the add area */
+.lists-status {
+  min-height: 18px;
+  margin-top: 8px;
+  text-align: left;
+}
+
+.lists-status.is-saved {
+  color: var(--value);
+}
+
+.lists-autosave-note {
+  margin: 4px 0 0;
+}
+
+/* Just-added item: brief highlight so the eye finds it at the top */
+#listsItems .lists-item--new {
+  animation: lists-item-new 1.6s ease-out;
+}
+
+@keyframes lists-item-new {
+  0% {
+    border-color: rgba(0, 255, 102, 0.9);
+    background: rgba(0, 255, 102, 0.16);
+  }
+
+  100% {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #listsItems .lists-item--new {
+    animation: none;
+  }
 }
 
 #listsControls input {
