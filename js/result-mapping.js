@@ -46,15 +46,23 @@ const EXACT_RESULT_MAP = new Map([
 /**
  * Partial-match keyword rules on ключовій частині.
  * The first matching rule wins.
+ *
+ * EN: ORDER MATTERS. Negative wordings must come before the positive ones:
+ *     "не уражено" contains "уражено", so with HIT first every free-text miss
+ *     ("Ціль не уражено", "Не уражено через РЕБ") was counted as a hit.
+ * UA: ПОРЯДОК ВАЖЛИВИЙ. Заперечні формулювання мають стояти перед ствердними:
+ *     «не уражено» містить «уражено», тож коли HIT ішов першим, кожен промах,
+ *     записаний вільним текстом («Ціль не уражено», «Не уражено через РЕБ»),
+ *     рахувався як ураження.
  */
 const KEYWORD_RULES = [
   {
-    keywords: ["ураження", "уражено"],
-    category: RESULT_CATEGORIES.HIT,
+    keywords: ["не уражен", "без ураження", "не знайдено"],
+    category: RESULT_CATEGORIES.MISS,
   },
   {
-    keywords: ["не уражено", "не знайдено", "не знайдено цілі"],
-    category: RESULT_CATEGORIES.MISS,
+    keywords: ["ураження", "уражено"],
+    category: RESULT_CATEGORIES.HIT,
   },
   {
     keywords: ["обрив"],
