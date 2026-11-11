@@ -99,8 +99,30 @@ import {
   legacyEncryptedExportToReports,
 } from "./legacy-import.js";
 
-/** EN: Default file name suggested for the encrypted backup download. UA: Стандартне ім’я файлу зашифрованого бекапу при завантаженні. */
-const EXPORT_FILE_NAME = "uav_reports_v2.enc.json";
+/** EN: Backup file name parts: `<prefix>_<YYYY-MM-DD>_<HH-MM-SS><suffix>`. UA: Частини імені файлу бекапу. */
+const EXPORT_FILE_PREFIX = "uav_reports_v2";
+const EXPORT_FILE_SUFFIX = ".enc.json";
+
+/**
+ * EN: Builds the backup file name with the device's LOCAL date and time of
+ *     the moment of saving, e.g. `uav_reports_v2_2026-11-11_20-45-07.enc.json`.
+ *     Every export gets its own name, so copies do not overwrite each other
+ *     and sort chronologically in a file manager. Only `-` and `_` are used —
+ *     `:` is not allowed in file names on Windows / Android.
+ * UA: Формує імʼя файлу бекапу з ЛОКАЛЬНИМИ датою і часом пристрою на момент
+ *     збереження, напр. `uav_reports_v2_2026-11-11_20-45-07.enc.json`.
+ *     Кожен експорт має власне імʼя — копії не перезаписують одна одну і
+ *     сортуються за часом у файловому менеджері. Лише `-` та `_`: символ `:`
+ *     заборонений в іменах файлів Windows / Android.
+ * @param {Date} [now]
+ * @returns {string}
+ */
+export function buildExportFileName(now = new Date()) {
+  const p = (n) => String(n).padStart(2, "0");
+  const date = `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`;
+  const time = `${p(now.getHours())}-${p(now.getMinutes())}-${p(now.getSeconds())}`;
+  return `${EXPORT_FILE_PREFIX}_${date}_${time}${EXPORT_FILE_SUFFIX}`;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Validation helpers
@@ -301,8 +323,9 @@ export async function exportEncryptedReports(passphrase) {
     reports,
   };
   const encrypted = await encryptJSON(payload, passphrase);
-  downloadTextFile(JSON.stringify(encrypted, null, 2), EXPORT_FILE_NAME);
-  return { fileName: EXPORT_FILE_NAME, count: reports.length };
+  const fileName = buildExportFileName();
+  downloadTextFile(JSON.stringify(encrypted, null, 2), fileName);
+  return { fileName, count: reports.length };
 }
 
 /**
