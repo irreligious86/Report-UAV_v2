@@ -276,7 +276,11 @@ function downloadTextFile(content, fileName) {
   document.body.appendChild(a);
   a.click();
   a.remove();
-  URL.revokeObjectURL(url);
+  // EN: Revoking right after click() can cancel the download on some mobile
+  //     browsers — the blob must stay alive until the download has started.
+  // UA: Відкликання одразу після click() на деяких мобільних браузерах
+  //     скасовує завантаження — blob має жити, доки завантаження не почнеться.
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 /**

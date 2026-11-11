@@ -76,6 +76,7 @@ import {
 } from "../crypto/importExport.js";
 import { deleteAllReports, listReports } from "../report-actions.js";
 import { confirmDeletion } from "../confirm-dialog.js";
+import { emitReportsChanged } from "../events.js";
 
 let initialized = false;
 
@@ -214,10 +215,10 @@ function bindDeleteAllReports() {
       finalMessage: `Усі ${list.length} звіт(ів) зникнуть назавжди. Відновити можна буде лише з резервної копії.`,
     });
     if (!ok) return;
+    // EN: deleteAllReports() emits `reportsChanged` itself.
+    // UA: deleteAllReports() сам емітує `reportsChanged`.
     await deleteAllReports();
-    setTransferStatus(`Архів очищено (було ${list.length} звітів).`);
-    window.dispatchEvent(new Event("reportsChanged"));
-    window.dispatchEvent(new Event("reportsUpdated"));
+    setArchiveStatus(`Архів очищено (було ${list.length} звітів).`);
   };
 }
 
@@ -277,9 +278,8 @@ async function handleImport(file) {
     setTransferStatus(
       `Імпорт завершено. Було: ${result.before}, у файлі: ${result.imported}, додано: ${result.added}, стало: ${result.after}.`
     );
-    // Notify journal screen to refresh its list
-    window.dispatchEvent(new Event("reportsChanged"));
-    window.dispatchEvent(new Event("reportsUpdated"));
+    // Notify journal / map to refresh their lists
+    emitReportsChanged();
   } catch (err) {
     setTransferStatus(errMsg(err), true);
   }
@@ -295,7 +295,25 @@ async function handleImport(file) {
  * @param {boolean} [isError]
  */
 function setTransferStatus(msg, isError) {
-  const el = $("transferStatus");
+  setStatusLine_("dataTransferStatus", msg, isError);
+}
+
+/**
+ * EN: Status line of the «Очистити архів» block.
+ * UA: Рядок статусу блоку «Очистити архів».
+ * @param {string} msg
+ */
+function setArchiveStatus(msg) {
+  setStatusLine_("dataArchiveStatus", msg, false);
+}
+
+/**
+ * @param {string} id
+ * @param {string} msg
+ * @param {boolean} [isError]
+ */
+function setStatusLine_(id, msg, isError) {
+  const el = $(id);
   if (!el) return;
   el.textContent = msg;
   el.classList.toggle("error", !!isError);

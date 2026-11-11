@@ -1458,6 +1458,10 @@ input.ui-time {
   margin-top: 4px;
 }
 
+.data-transfer-status.error {
+  color: var(--danger);
+}
+
 /* Legacy class — no longer used in new layout */
 .integration-card { display: none; }
 .journal-transfer { display: none; }
