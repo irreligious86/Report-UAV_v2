@@ -16,6 +16,9 @@ export const STORAGE_KEY_COUNTER = "uav_report_counter_v13";
 /** EN: localStorage key for last-used crew callsign. UA: Ключ останнього позивного екіпажу. */
 export const STORAGE_KEY_CREW_NAME = "uav_crew_name_v1";
 
+/** EN: sessionStorage key of the main form draft (survives reloads, cleared on a fresh app launch). UA: Ключ sessionStorage для чернетки форми (переживає перезавантаження, зникає при новому запуску). */
+export const STORAGE_KEY_FORM_DRAFT = "uav_form_draft_v1";
+
 /** EN: Default stream field placeholder. UA: Плейсхолдер поля «Стрім». */
 export const STREAM_PLACEHOLDER = "---";
 

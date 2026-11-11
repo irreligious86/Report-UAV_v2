@@ -10,7 +10,8 @@
  *     - MGRS easting / northing inputs (5-digit normalisation in
  *       `coords.js`; auto-jump from easting to northing on full input),
  *     - long-press on selects to switch to free-text mode (longPressEdit),
- *     - the «Готово» button — delegates to `generate.js`.
+ *     - the «Готово» button — delegates to `generate.js`,
+ *     - the form draft (`form-draft.js`) — typed values survive a reload.
  *
  *   Config (drones, mission types, ammo, results, MGRS prefixes) is loaded
  *   from `config.json` once on first init, merged with the user's
@@ -27,7 +28,8 @@
  *       авто-перехід з easting у northing при повному вводі),
  *     - long-press на select-ах для переходу у режим вільного вводу
  *       (longPressEdit),
- *     - кнопка «Готово» — делегує у `generate.js`.
+ *     - кнопка «Готово» — делегує у `generate.js`,
+ *     - чернетка форми (`form-draft.js`) — введене переживає перезавантаження.
  *
  *   Конфіг (дрони, типи місій, боєприпаси, результати, префікси MGRS)
  *   завантажується з `config.json` один раз при ініціалізації, зливається
@@ -49,6 +51,7 @@ import {
 } from "../config.js";
 import { enableLongPressToEdit } from "../longPressEdit.js";
 import { generate } from "../generate.js";
+import { initFormDraft, restoreFormDraft } from "../form-draft.js";
 import { FORM_TEXT_FIELD_MAX_LENGTH } from "../constants.js";
 
 /**
@@ -208,6 +211,13 @@ export async function initMainFormScreen() {
   enableLongPressToEdit("drone", "droneList", FORM_TEXT_FIELD_MAX_LENGTH);
   enableLongPressToEdit("missionType", "missionTypeList", FORM_TEXT_FIELD_MAX_LENGTH);
   enableLongPressToEdit("result", "resultList", 100);
+
+  // EN: Bring back what the user had typed before a reload / tab restore,
+  //     then start auto-saving. Order matters: selects must be filled first.
+  // UA: Повертаємо введене до перезавантаження / відновлення вкладки, далі
+  //     вмикаємо автозбереження. Порядок важливий: спершу заповнені select-и.
+  restoreFormDraft();
+  initFormDraft();
 
   updateEmptyHighlights();
 }
