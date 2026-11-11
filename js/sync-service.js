@@ -24,6 +24,7 @@
 
 import { SYNC_STATUS, patchReportMeta } from "./report-model.js";
 import * as reportsStore from "./reports-store.js";
+import * as logger from "./logger.js";
 import * as queueStore from "./sync-queue-store.js";
 import { emitReportsChanged } from "./events.js";
 import {
@@ -59,7 +60,16 @@ const MAX_DRAIN_PER_RUN = 500;
  * @returns {Promise<void>}
  */
 export async function processSyncQueue() {
-  drainChain = drainChain.then(drain_);
+  // EN: The chain must never stay rejected: one failed drain (e.g. a transient
+  //     IndexedDB error) would otherwise make every later `.then(drain_)` a
+  //     no-op and silently stop all sending until the page is reloaded.
+  // UA: Ланцюжок не має лишатися відхиленим: інакше один збій drain (напр.
+  //     тимчасова помилка IndexedDB) перетворив би кожен наступний
+  //     `.then(drain_)` на порожній крок і тихо зупинив би відправку до
+  //     перезавантаження сторінки.
+  drainChain = drainChain.then(drain_).catch((err) => {
+    logger.error("sync drain failed", err);
+  });
   return drainChain;
 }
 
@@ -149,8 +159,12 @@ export async function startSyncService() {
   await rotateSyncLog();
 
   const tick = async () => {
-    await processScheduledReports();
-    await processSyncQueue();
+    try {
+      await processScheduledReports();
+      await processSyncQueue();
+    } catch (err) {
+      logger.error("sync tick failed", err);
+    }
   };
 
   void tick();
