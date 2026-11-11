@@ -81,6 +81,7 @@ function ensureDialog_() {
  * @param {string} [opt.message]    EN: what will be deleted. UA: що буде видалено.
  * @param {string} [opt.details]    EN: optional preview (report text); shown as pre-wrapped text. UA: необов'язковий перегляд (текст звіту).
  * @param {string} [opt.confirmLabel] EN: step-1 button label. UA: напис кнопки кроку 1.
+ * @param {string} [opt.finalConfirmLabel] EN: step-2 button label. UA: напис кнопки кроку 2.
  * @param {string} [opt.finalMessage] EN: step-2 warning. UA: попередження кроку 2.
  * @returns {Promise<boolean>} EN: true only if both steps were confirmed. UA: true лише якщо підтверджено обидва кроки.
  */
@@ -90,6 +91,7 @@ export function confirmDeletion(opt) {
     message = "",
     details = "",
     confirmLabel = "Видалити",
+    finalConfirmLabel = "Так, видалити",
     finalMessage = "Це остаточно. Відновити видалене буде неможливо.",
   } = opt || {};
 
@@ -137,7 +139,7 @@ export function confirmDeletion(opt) {
         titleEl.textContent = "Ви впевнені?";
         messageEl.textContent = finalMessage;
         messageEl.hidden = false;
-        confirmBtn.textContent = "Так, видалити";
+        confirmBtn.textContent = finalConfirmLabel;
         // [Так, видалити] [Скасувати] — swapped on purpose.
         actionsEl.append(confirmBtn, cancelBtn);
         confirmBtn.disabled = true;

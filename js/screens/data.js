@@ -126,6 +126,22 @@ async function bindIntegrationForm() {
   if (lock instanceof HTMLInputElement)   lock.checked = s.lockAfterSend;
   if (corr instanceof HTMLInputElement)   corr.checked = s.correctionsOnlyAfterSend;
 
+  // EN: The delay field only matters in "delayed" mode — hide it otherwise.
+  // UA: Поле затримки має сенс лише в режимі «З затримкою» — інакше ховаємо.
+  const syncDelayRowVisibility = () => {
+    const row = $("syncDelayRow");
+    if (row && mode instanceof HTMLSelectElement) row.hidden = mode.value !== "delayed";
+  };
+  if (mode instanceof HTMLSelectElement) mode.onchange = syncDelayRowVisibility;
+  syncDelayRowVisibility();
+  updateSheetLink(s.googleSheetUrl);
+
+  /** EN: Minutes from the input; 0 is a valid value. UA: Хвилини з поля; 0 — коректне значення. */
+  const readDelayMinutes = () => {
+    const n = delay instanceof HTMLInputElement ? parseInt(delay.value, 10) : NaN;
+    return Number.isFinite(n) && n >= 0 ? n : 60;
+  };
+
   // Save
   const btnSave = $("syncSaveSettings");
   if (btnSave) {
@@ -142,13 +158,11 @@ async function bindIntegrationForm() {
           mode instanceof HTMLSelectElement && mode.value
             ? /** @type {"manual"|"immediate"|"delayed"} */ (mode.value)
             : "manual",
-        sendDelayMinutes:
-          delay instanceof HTMLInputElement
-            ? Math.max(0, parseInt(delay.value, 10) || 60)
-            : 60,
+        sendDelayMinutes: readDelayMinutes(),
         lockAfterSend:            lock instanceof HTMLInputElement ? lock.checked : true,
         correctionsOnlyAfterSend: corr instanceof HTMLInputElement ? corr.checked : true,
       });
+      updateSheetLink(u1 instanceof HTMLInputElement ? u1.value : "");
       setIntegrationStatus("Збережено.");
     };
   }
@@ -157,6 +171,17 @@ async function bindIntegrationForm() {
   const btnReset = $("syncResetSettings");
   if (btnReset) {
     btnReset.onclick = async () => {
+      // EN: Reset wipes the saved URLs — same two-step guard as deletions.
+      // UA: Скидання стирає збережені URL — той самий двокроковий захист.
+      const ok = await confirmDeletion({
+        title: "Скинути налаштування інтеграції?",
+        message:
+          "Посилання на таблицю та URL Apps Script буде стерто, режим відправки повернеться до «Вручну». Звіти не видаляються.",
+        confirmLabel: "Скинути",
+        finalConfirmLabel: "Так, скинути",
+        finalMessage: "URL Apps Script доведеться вставити заново.",
+      });
+      if (!ok) return;
       await saveSyncSettings(getDefaultSyncSettings());
       await bindIntegrationForm();           // re-populate fields
       setIntegrationStatus("Скинуто до типових.");
@@ -167,9 +192,20 @@ async function bindIntegrationForm() {
   const btnTest = $("syncTestConnection");
   if (btnTest) {
     btnTest.onclick = async () => {
-      const cur = await loadSyncSettings();
+      // EN: Test what is typed in the field right now, not what was saved
+      //     earlier — otherwise a freshly pasted URL reports "incorrect URL"
+      //     until the user thinks of pressing «Зберегти» first.
+      // UA: Перевіряємо те, що зараз у полі, а не збережене раніше — інакше
+      //     щойно вставлений URL дає «некоректний URL», доки користувач не
+      //     здогадається спершу натиснути «Зберегти».
+      const saved = await loadSyncSettings();
+      const typed = u2 instanceof HTMLInputElement ? u2.value.trim() : "";
+      const cur = { ...saved, appsScriptUrl: typed || saved.appsScriptUrl };
       if (!validateAppsScriptUrl(cur.appsScriptUrl)) {
-        setIntegrationStatus("Некоректний URL Apps Script.", true);
+        setIntegrationStatus(
+          cur.appsScriptUrl ? "Некоректний URL Apps Script." : "Спочатку вставте URL Apps Script.",
+          true
+        );
         return;
       }
       setIntegrationStatus("Перевірка з'єднання…");
@@ -180,6 +216,28 @@ async function bindIntegrationForm() {
       );
     };
   }
+}
+
+/**
+ * EN: Shows «Відкрити таблицю ↗» next to the section hint when a valid
+ *     http(s) link to the spreadsheet is saved; hides it otherwise.
+ * UA: Показує «Відкрити таблицю ↗» біля підказки, коли збережено коректне
+ *     http(s)-посилання на таблицю; інакше ховає.
+ * @param {string} url
+ */
+function updateSheetLink(url) {
+  const link = $("syncSheetLink");
+  if (!(link instanceof HTMLAnchorElement)) return;
+  const s = String(url || "").trim();
+  let ok = false;
+  try {
+    const u = new URL(s);
+    ok = u.protocol === "https:" || u.protocol === "http:";
+  } catch {
+    ok = false;
+  }
+  link.style.display = ok ? "" : "none";
+  link.href = ok ? s : "#";
 }
 
 /**

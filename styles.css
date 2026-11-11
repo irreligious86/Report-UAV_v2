@@ -1541,6 +1541,10 @@ input.ui-time {
   color: var(--label);
 }
 
+.integration-label[hidden] {
+  display: none;
+}
+
 .integration-input {
   width: 100%;
   padding: 10px 12px;
