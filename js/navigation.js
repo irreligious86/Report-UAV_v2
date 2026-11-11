@@ -20,7 +20,7 @@
  *     - entering the map → `onMapScreenShown()` so Leaflet can
  *       `invalidateSize()` and refresh tiles.
  *
- *   The title doubles as a "v2 badge" on the form screen and a clean
+ *   The title carries the version badge on the form screen and a clean
  *   text on others — handled in the switch at the bottom of `navigateTo`.
  *
  * UA:
@@ -42,7 +42,7 @@
  *     - вхід у мапу → `onMapScreenShown()`, щоб Leaflet зробив
  *       `invalidateSize()` і освіжив тайли.
  *
- *   На екрані форми заголовок несе «v2-бейдж», на інших — чистий текст;
+ *   На екрані форми заголовок несе бейдж версії, на інших — чистий текст;
  *   усе це у switch в кінці `navigateTo`.
  *
  * @module navigation
@@ -53,7 +53,7 @@ import { syncDateInputToUiFormat } from "./date-utils.js";
 import { syncNativePickerFromDisplay } from "./ui-native-datetime.js";
 import { onMapScreenShown, resetMapLayout } from "./screens/map.js";
 import { resetJournalListLayout, onJournalScreenShown } from "./screens/journal.js";
-import { LONG_PRESS_MS } from "./constants.js";
+import { LONG_PRESS_MS, APP_VERSION } from "./constants.js";
 
 /** EN: Known screen ids (order matches the menu in `index.html`). UA: Відомі id екранів (порядок відповідає меню в `index.html`). */
 const SCREEN_IDS = ["main", "journal", "data", "map", "settings", "help"];
@@ -195,10 +195,10 @@ export function navigateTo(screenId) {
 
   const titleEl = $("title");
   if (titleEl) {
-    const v2Badge = ' <span class="version-badge">v2</span>';
+    const versionBadge = ` <span class="version-badge">v${APP_VERSION}</span>`;
     switch (currentScreenId) {
       case "main":
-        titleEl.innerHTML = "Звіт по БПЛА" + v2Badge;
+        titleEl.innerHTML = "Звіт по БПЛА" + versionBadge;
         break;
       case "journal":
         titleEl.textContent = "Журнал та статистика";
@@ -216,7 +216,7 @@ export function navigateTo(screenId) {
         titleEl.textContent = "Довідка та контакти";
         break;
       default:
-        titleEl.innerHTML = "Звіт по БПЛА" + v2Badge;
+        titleEl.innerHTML = "Звіт по БПЛА" + versionBadge;
         break;
     }
   }

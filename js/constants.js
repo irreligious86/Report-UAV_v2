@@ -7,6 +7,17 @@
  * @module constants
  */
 
+/**
+ * EN: App version shown in the title badge. Keep in sync with `manifest.json`
+ *     ("name"), `package.json` and the static badge in `index.html`
+ *     (`npm run verify` checks it). Bump `CACHE_NAME` in `sw.js` on release.
+ * UA: Версія застосунку у бейджі заголовка. Тримати узгодженою з
+ *     `manifest.json` ("name"), `package.json` і статичним бейджем у
+ *     `index.html` (перевіряє `npm run verify`). На реліз — підняти
+ *     `CACHE_NAME` у `sw.js`.
+ */
+export const APP_VERSION = "2.1";
+
 /** EN: Relative URL of list defaults (drones, results, …). UA: Відносний URL списків за замовчуванням. */
 export const CONFIG_URL = "./config.json";
 

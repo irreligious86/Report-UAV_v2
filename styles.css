@@ -3463,13 +3463,13 @@ input.ui-time {
   position: relative;
   top: -4px;
 
-  /* левая часть чёткая, правая растворяется */
+  /* Left part crisp, right part fades — but not to nothing: the badge is
+     now four characters ("v2.1") and the minor digit must stay readable. */
   background: linear-gradient(
     to right,
-    rgba(140, 165, 155, 0.7) 0%,
-    rgba(140, 165, 155, 0.45) 40%,
-    rgba(140, 165, 155, 0.18) 75%,
-    rgba(140, 165, 155, 0.04) 100%
+    rgba(140, 165, 155, 0.75) 0%,
+    rgba(140, 165, 155, 0.6) 50%,
+    rgba(140, 165, 155, 0.4) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
