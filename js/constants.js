@@ -7,6 +7,17 @@
  * @module constants
  */
 
+/**
+ * EN: App version shown in the title badge. Keep in sync with `manifest.json`
+ *     ("name"), `package.json` and the static badge in `index.html`
+ *     (`npm run verify` checks it). Bump `CACHE_NAME` in `sw.js` on release.
+ * UA: Версія застосунку у бейджі заголовка. Тримати узгодженою з
+ *     `manifest.json` ("name"), `package.json` і статичним бейджем у
+ *     `index.html` (перевіряє `npm run verify`). На реліз — підняти
+ *     `CACHE_NAME` у `sw.js`.
+ */
+export const APP_VERSION = "2.1";
+
 /** EN: Relative URL of list defaults (drones, results, …). UA: Відносний URL списків за замовчуванням. */
 export const CONFIG_URL = "./config.json";
 
@@ -16,6 +27,9 @@ export const STORAGE_KEY_COUNTER = "uav_report_counter_v13";
 /** EN: localStorage key for last-used crew callsign. UA: Ключ останнього позивного екіпажу. */
 export const STORAGE_KEY_CREW_NAME = "uav_crew_name_v1";
 
+/** EN: sessionStorage key of the main form draft (survives reloads, cleared on a fresh app launch). UA: Ключ sessionStorage для чернетки форми (переживає перезавантаження, зникає при новому запуску). */
+export const STORAGE_KEY_FORM_DRAFT = "uav_form_draft_v1";
+
 /** EN: Default stream field placeholder. UA: Плейсхолдер поля «Стрім». */
 export const STREAM_PLACEHOLDER = "---";
 
@@ -23,7 +37,7 @@ export const STREAM_PLACEHOLDER = "---";
 export const FORM_TEXT_FIELD_MAX_LENGTH = 32;
 
 /** EN: Max reports in IndexedDB; bulk import may drop oldest. UA: Максимум звітів у IndexedDB; при імпорті старі можуть відсіктися. */
-export const REPORTS_LIMIT = 500;
+export const REPORTS_LIMIT = 1000;
 
 /** EN: User overrides for `config.json` lists (settings screen). UA: Перевизначення списків з `config.json` (екран налаштувань). */
 export const STORAGE_KEY_CONFIG_OVERRIDES = "uav_report_config_overrides_v1";

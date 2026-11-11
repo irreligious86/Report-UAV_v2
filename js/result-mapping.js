@@ -1,9 +1,9 @@
 /**
- * Result mapping: raw “Результат” text → normalized category for KPI / journal.
+ * Result mapping: raw “Результат” text → normalized category for the journal summary.
  *
  * EN: Convention `key (details)` — only the key (text before `(`) drives categories.
  *     `RESULT_CATEGORIES` values are stable identifiers for stored reports.
- * UA: Конвенція «ключ (деталі)» — для KPI береться лише ключ (до дужки).
+ * UA: Конвенція «ключ (деталі)» — для категорії береться лише ключ (до дужки).
  *     Значення `RESULT_CATEGORIES` не змінювати без міграції сумісності.
  *
  * @module result-mapping
@@ -46,15 +46,23 @@ const EXACT_RESULT_MAP = new Map([
 /**
  * Partial-match keyword rules on ключовій частині.
  * The first matching rule wins.
+ *
+ * EN: ORDER MATTERS. Negative wordings must come before the positive ones:
+ *     "не уражено" contains "уражено", so with HIT first every free-text miss
+ *     ("Ціль не уражено", "Не уражено через РЕБ") was counted as a hit.
+ * UA: ПОРЯДОК ВАЖЛИВИЙ. Заперечні формулювання мають стояти перед ствердними:
+ *     «не уражено» містить «уражено», тож коли HIT ішов першим, кожен промах,
+ *     записаний вільним текстом («Ціль не уражено», «Не уражено через РЕБ»),
+ *     рахувався як ураження.
  */
 const KEYWORD_RULES = [
   {
-    keywords: ["ураження", "уражено"],
-    category: RESULT_CATEGORIES.HIT,
+    keywords: ["не уражен", "без ураження", "не знайдено"],
+    category: RESULT_CATEGORIES.MISS,
   },
   {
-    keywords: ["не уражено", "не знайдено", "не знайдено цілі"],
-    category: RESULT_CATEGORIES.MISS,
+    keywords: ["ураження", "уражено"],
+    category: RESULT_CATEGORIES.HIT,
   },
   {
     keywords: ["обрив"],
@@ -71,7 +79,7 @@ const KEYWORD_RULES = [
 ];
 
 /**
- * Розбирає рядок результату: ключ для KPI (до дужок) та текст у дужках як коментар.
+ * Розбирає рядок результату: ключ категорії (до дужок) та текст у дужках як коментар.
  * Очікуваний формат: «Ураження (знищення антени)» або без дужок — уесь рядок є ключем.
  * Якщо дужки «зламані» або ключ порожній — повертається весь рядок як ключ без деталей.
  *
@@ -153,22 +161,4 @@ export function mapResultToCategory(raw) {
   }
 
   return RESULT_CATEGORIES.OTHER;
-}
-
-/**
- * Чи відносить результат до «успішного» вильоту для KPI (підхід ураження).
- * @param {string} raw
- * @returns {boolean}
- */
-export function isKpiHit(raw) {
-  return mapResultToCategory(raw) === RESULT_CATEGORIES.HIT;
-}
-
-/**
- * Чи вважати результат губильним для лічильника втрат у журналі (втрата борта).
- * @param {string} raw
- * @returns {boolean}
- */
-export function isKpiLoss(raw) {
-  return mapResultToCategory(raw) === RESULT_CATEGORIES.LOSS;
 }

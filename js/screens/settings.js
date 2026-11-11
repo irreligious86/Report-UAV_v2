@@ -5,24 +5,25 @@
  *   This screen lets the user customise the dropdown contents on the main
  *   form (drones, mission types, ammo, results, MGRS prefixes) without
  *   editing `config.json`. Changes are stored in localStorage as
- *   "overrides" — the runtime then merges base config + overrides and
- *   feeds the result to `screens/mainForm.js` selects/datalists.
+ *   "overrides" — the runtime merges base config + overrides and feeds the
+ *   result to the main form's selects/datalists.
  *
  *   UI:
  *     - a tab strip — one tab per list,
+ *     - an "add" input on top; a new item is inserted at the TOP of the list,
  *     - a sortable `<ul>` of the active list (drag handle on each row,
- *       delete button on the right),
- *     - an "add" input at the bottom,
- *     - a "save" button (overrides are also saved on every individual
- *       change; the button is mostly a UX confirmation cue).
+ *       delete button on the right).
  *
- *   Drag-and-drop is provided by Sortable.js (loaded from a CDN in
- *   `index.html`). On drop we read the new order, store it as an
- *   override, and re-render the list.
+ *   Autosave: there is NO save button. Every action — add, delete, reorder —
+ *   goes through `commitActiveList_()`, which in one step
+ *     1) stores the overrides in localStorage,
+ *     2) re-applies the lists to the main form (the form keeps whatever is
+ *        currently selected, see `config.applyConfig`),
+ *     3) re-renders the list and shows a short "saved" status.
+ *   So nothing can be lost by forgetting to press a button.
  *
- *   Note: Google Sheets integration USED to live here in early versions
- *   and was extracted into `screens/data.js`. This module is purely about
- *   the field-list editor.
+ *   Drag-and-drop is provided by the vendored Sortable.js
+ *   (`js/vendor/Sortable.min.js` → `window.Sortable`).
  *
  * UA:
  *   Екран дозволяє користувачу налаштувати вміст випадаючих списків
@@ -33,18 +34,20 @@
  *
  *   UI:
  *     - смуга вкладок — одна вкладка на список,
+ *     - поле «додати» зверху; новий пункт вставляється на ПОЧАТОК списку,
  *     - сортовний `<ul>` активного списку (drag-ручка ліворуч, кнопка
- *       видалення праворуч),
- *     - поле «додати» унизу,
- *     - кнопка «зберегти» (перевизначення зберігаються і на кожній
- *       окремій зміні; ця кнопка — переважно UX-сигнал «збережено»).
+ *       видалення праворуч).
  *
- *   Drag-and-drop реалізує Sortable.js (підключається з CDN у
- *   `index.html`). На drop читаємо новий порядок, зберігаємо як
- *   перевизначення і перемальовуємо список.
+ *   Автозбереження: кнопки «зберегти» НЕМАЄ. Кожна дія — додати, видалити,
+ *   перетягнути — проходить через `commitActiveList_()`, яка за один крок
+ *     1) зберігає перевизначення у localStorage,
+ *     2) перезастосовує списки до головної форми (форма зберігає поточний
+ *        вибір, див. `config.applyConfig`),
+ *     3) перемальовує список і показує короткий статус «збережено».
+ *   Тож нічого не загубиться через забуту кнопку.
  *
- *   Примітка: Google Sheets-інтеграція раніше була тут і була винесена
- *   у `screens/data.js`. Цей модуль — лише про редактор списків.
+ *   Drag-and-drop реалізує локальна копія Sortable.js
+ *   (`js/vendor/Sortable.min.js` → `window.Sortable`).
  *
  * @module screens/settings
  */
@@ -57,7 +60,6 @@ import {
   applyConfigWithOverrides,
 } from "../config.js";
 import { FORM_TEXT_FIELD_MAX_LENGTH } from "../constants.js";
-// Google Sheets integration is handled by screens/data.js
 
 let initialized = false;
 
@@ -76,6 +78,12 @@ let overrides = null;
 let effectiveLists = null;
 
 let sortableInstance = null;
+
+/** EN: Timer that clears the "saved" status. UA: Таймер, що прибирає статус «збережено». */
+let statusTimer = 0;
+
+/** EN: Value to flash after the next render (just-added item). UA: Значення, яке підсвітити після рендеру (щойно доданий пункт). */
+let justAddedValue = null;
 
 const LIST_KEYS_MAX_32 = new Set(["drones", "missionTypes", "ammo"]);
 
@@ -101,9 +109,71 @@ function getList(key) {
   return Array.isArray(effectiveLists?.[key]) ? effectiveLists[key] : [];
 }
 
-function setStatus(msg) {
+/**
+ * EN: Shows a status line under the "add" input. `ok` paints it as a
+ *     confirmation and makes it disappear after a few seconds.
+ * UA: Показує рядок статусу під полем «додати». `ok` фарбує його як
+ *     підтвердження і прибирає через кілька секунд.
+ * @param {string} msg
+ * @param {boolean} [ok]
+ */
+function setStatus(msg, ok = false) {
   const el = $("settingsStatus");
-  if (el) el.textContent = msg || "";
+  if (!el) return;
+  window.clearTimeout(statusTimer);
+  el.textContent = msg || "";
+  el.classList.toggle("is-saved", ok && !!msg);
+  if (ok && msg) {
+    statusTimer = window.setTimeout(() => {
+      el.textContent = "";
+      el.classList.remove("is-saved");
+    }, 2500);
+  }
+}
+
+/**
+ * EN: Current working copy of the active list (override if present, else the
+ *     effective base list).
+ * UA: Поточна робоча копія активного списку (перевизначення, якщо є, інакше
+ *     ефективний базовий список).
+ * @returns {string[]}
+ */
+function activeListCopy_() {
+  return Array.isArray(overrides?.lists?.[activeListKey])
+    ? [...overrides.lists[activeListKey]]
+    : [...getList(activeListKey)];
+}
+
+/**
+ * EN: THE autosave point. Stores the new content of the active list, pushes
+ *     the lists to the main form right away and re-renders the editor.
+ *     Every mutation (add / delete / reorder) must end here.
+ * UA: ЄДИНА точка автозбереження. Зберігає новий вміст активного списку,
+ *     одразу передає списки головній формі й перемальовує редактор.
+ *     Кожна зміна (додати / видалити / перетягнути) має закінчуватися тут.
+ * @param {string[]} nextList
+ * @param {string} statusMsg
+ */
+function commitActiveList_(nextList, statusMsg) {
+  if (!overrides) overrides = {};
+  if (!overrides.lists) overrides.lists = {};
+  overrides.lists[activeListKey] = nextList;
+
+  let saved = true;
+  try {
+    saveConfigOverrides(overrides);
+  } catch {
+    // EN: Quota / private mode: the change still works until reload.
+    // UA: Квота / приватний режим: зміна діє до перезавантаження.
+    saved = false;
+  }
+  rebuildEffectiveLists();
+
+  if (baseCfg) applyConfigWithOverrides(baseCfg, overrides);
+
+  renderItems();
+  if (saved) setStatus(`${statusMsg} Збережено ✓`, true);
+  else setStatus(`${statusMsg} Не вдалося зберегти у сховище браузера — зміна зникне після перезапуску.`);
 }
 
 function rebuildEffectiveLists() {
@@ -133,6 +203,7 @@ function renderTabs() {
       renderHint();
       renderItems();
       updateListNewItemMaxLength();
+      setStatus("");
     };
 
     tabsEl.appendChild(btn);
@@ -171,20 +242,12 @@ function setupSortable() {
   sortableInstance = new window.Sortable(ul, {
     animation: 150,
     handle: ".dragHandle",
-    onEnd: () => {
+    onEnd: (evt) => {
+      if (evt.oldIndex === evt.newIndex) return;
       const ordered = Array.from(ul.children)
         .map((li) => li?.dataset?.value)
         .filter(Boolean);
-
-      if (!overrides) overrides = {};
-      if (!overrides.lists) overrides.lists = {};
-      overrides.lists[activeListKey] = ordered;
-
-      saveConfigOverrides(overrides);
-      rebuildEffectiveLists();
-
-      setStatus("Порядок збережено локально.");
-      renderItems();
+      commitActiveList_(ordered, "Порядок змінено.");
     },
   });
 }
@@ -200,6 +263,7 @@ function renderItems() {
     const li = document.createElement("li");
     li.className = "lists-item";
     li.dataset.value = value;
+    if (value === justAddedValue) li.classList.add("lists-item--new");
 
     // drag handle
     const drag = document.createElement("button");
@@ -247,6 +311,7 @@ function renderItems() {
     ul.appendChild(li);
   }
 
+  justAddedValue = null;
   setupSortable();
 }
 
@@ -261,69 +326,32 @@ function addItem(raw) {
     return;
   }
 
-  const current = getList(activeListKey);
-
-  // берём override-список если был, иначе копируем effective
-  const list = Array.isArray(overrides?.lists?.[activeListKey])
-    ? [...overrides.lists[activeListKey]]
-    : [...current];
+  const list = activeListCopy_();
 
   if (list.some((x) => toLowerSafe(x) === toLowerSafe(v))) {
     setStatus("Такий пункт уже існує.");
     return;
   }
 
-  list.push(v);
-
-  if (!overrides) overrides = {};
-  if (!overrides.lists) overrides.lists = {};
-  overrides.lists[activeListKey] = list;
-
-  saveConfigOverrides(overrides);
-  rebuildEffectiveLists();
+  // EN: New items go to the TOP — right under the input, where the user is
+  //     looking, and first in the form's dropdown.
+  // UA: Нові пункти йдуть НАГОРУ — одразу під полем вводу, куди дивиться
+  //     користувач, і першими у випадаючому списку форми.
+  list.unshift(v);
 
   const input = $("listNewItem");
   if (input) input.value = "";
 
-  setStatus("Пункт додано.");
-  renderItems();
+  justAddedValue = v;
+  commitActiveList_(list, "Пункт додано.");
+
+  const ul = $("listsItems");
+  if (ul) ul.scrollTop = 0;
 }
 
 function removeItem(valueToRemove) {
-  const current = getList(activeListKey);
-
-  const list = Array.isArray(overrides?.lists?.[activeListKey])
-    ? [...overrides.lists[activeListKey]]
-    : [...current];
-
-  const filtered = list.filter((x) => String(x) !== String(valueToRemove));
-
-  if (!overrides) overrides = {};
-  if (!overrides.lists) overrides.lists = {};
-  overrides.lists[activeListKey] = filtered;
-
-  saveConfigOverrides(overrides);
-  rebuildEffectiveLists();
-
-  setStatus("Пункт видалено.");
-  renderItems();
-}
-
-async function quickSave() {
-  // overrides already saved on each change, but user wants a clear “save action”
-  saveConfigOverrides(overrides);
-
-  if (baseCfg) {
-    applyConfigWithOverrides(baseCfg, overrides || {});
-  }
-
-  const btn = $("listsQuickSaveBtn");
-  if (btn) {
-    btn.classList.add("is-saved");
-    setTimeout(() => btn.classList.remove("is-saved"), 900);
-  }
-
-  setStatus("Зміни списків збережено локально.");
+  const filtered = activeListCopy_().filter((x) => String(x) !== String(valueToRemove));
+  commitActiveList_(filtered, "Пункт видалено.");
 }
 
 /**
@@ -357,7 +385,4 @@ export async function initSettingsScreen() {
       }
     });
   }
-
-  const saveBtn = $("listsQuickSaveBtn");
-  if (saveBtn) saveBtn.onclick = async () => quickSave();
 }

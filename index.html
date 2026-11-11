@@ -38,7 +38,7 @@
 
 <div class="wrap">
 
-<div class="title" id="title">Звіт по БПЛА <span class="version-badge">v2</span></div>
+<div class="title" id="title">Звіт по БПЛА <span class="version-badge">v2.1</span></div>
 
 <!-- Screen 1 -->
 <div class="screen" id="screen-main">
@@ -198,30 +198,6 @@ readonly></textarea>
 
 <div id="dashboard">
 
-<div class="dashboard-kpi">
-
-<div class="kpi-box">
-<div class="kpi-label">Вильотів</div>
-<div class="kpi-value" id="kpiTotal">0</div>
-</div>
-
-<div class="kpi-box">
-<div class="kpi-label">Уражень</div>
-<div class="kpi-value success" id="kpiHits">0</div>
-</div>
-
-<div class="kpi-box">
-<div class="kpi-label">Втрат</div>
-<div class="kpi-value danger" id="kpiLoss">0</div>
-</div>
-
-<div class="kpi-box">
-<div class="kpi-label">Ефективність</div>
-<div class="kpi-value" id="kpiRate">0%</div>
-</div>
-
-</div>
-
 <div class="dashboard-tabs">
 <button id="tabStats" class="tab active" type="button">Статистика</button>
 <button id="tabJournal" class="tab" type="button">Журнал</button>
@@ -230,7 +206,6 @@ readonly></textarea>
 <p class="journal-archive-info" id="journalArchiveInfo" role="status"></p>
 
 <div id="statsSection">
-<div id="barsContainer"></div>
 <div class="journal-summary" id="journalSummary"></div>
 
 <button class="btn" type="button" id="btnCopyJournalSummary">
@@ -405,6 +380,7 @@ aria-label="Звіти у періоді"
     >
       Видалити всі звіти
     </button>
+    <div class="data-transfer-status" id="dataArchiveStatus" aria-live="polite"></div>
   </div>
 
 </div>
@@ -418,26 +394,20 @@ aria-label="Звіти у періоді"
 
 <div class="listsEditorHeader">
 <h2>Редактор списків</h2>
-
-<button
-id="listsQuickSaveBtn"
-type="button"
-title="Зберегти зміни"
->
-💾
-</button>
 </div>
 
 <div id="listsTabs"></div>
 
-<ul id="listsItems"></ul>
-
 <div id="listsControls">
-<input id="listNewItem" type="text" placeholder="Нове значення">
+<input id="listNewItem" type="text" placeholder="Нове значення" autocomplete="off" enterkeyhint="done">
 <button id="listAddBtn" type="button">Додати</button>
 </div>
 
-<div class="status" id="settingsStatus"></div>
+<div class="status lists-status" id="settingsStatus" aria-live="polite"></div>
+
+<ul id="listsItems"></ul>
+
+<p class="settings-note lists-autosave-note">Усі зміни зберігаються автоматично й одразу потрапляють у форму звіту.</p>
 
 </div>
 </div>
@@ -490,7 +460,7 @@ title="Зберегти зміни"
 <!-- ────────────────────────────────────────────────────────────── -->
 <div class="help-hero">
   <div class="help-hero-tag">Довідка</div>
-  <h1 class="help-hero-title">Як користуватися <span class="help-hero-title-accent">Звіт БПЛА v2</span></h1>
+  <h1 class="help-hero-title">Як користуватися <span class="help-hero-title-accent">Звіт БПЛА v2.1</span></h1>
   <p class="help-hero-lead">
     Швидкий гід по застосунку — форма звіту, журнал, карта, синхронізація з
     Google Таблицями та зашифрована резервна копія.
@@ -517,7 +487,7 @@ title="Зберегти зміни"
 <nav class="help-toc" aria-label="Швидка навігація">
   <button class="help-chip" type="button" data-help-jump="help-sec-1">1 · Про застосунок</button>
   <button class="help-chip" type="button" data-help-jump="help-sec-2">2 · Форма звіту</button>
-  <button class="help-chip" type="button" data-help-jump="help-sec-3">3 · Журнал і KPI</button>
+  <button class="help-chip" type="button" data-help-jump="help-sec-3">3 · Журнал і статистика</button>
   <button class="help-chip" type="button" data-help-jump="help-sec-4">4 · Дані та шифрування</button>
   <button class="help-chip" type="button" data-help-jump="help-sec-5">5 · Карта місій</button>
   <button class="help-chip" type="button" data-help-jump="help-sec-6">6 · Списки</button>
@@ -553,8 +523,8 @@ title="Зберегти зміни"
   </div>
   <div class="help-feature">
     <div class="help-feature-icon" aria-hidden="true">📊</div>
-    <div class="help-feature-title">Журнал + KPI</div>
-    <div class="help-feature-text">Вильоти, ураження, втрати, ефективність за період.</div>
+    <div class="help-feature-title">Журнал + статистика</div>
+    <div class="help-feature-text">Зведення за бортами, боєприпасами, місіями й результатами за період.</div>
   </div>
   <div class="help-feature">
     <div class="help-feature-icon" aria-hidden="true">🗺️</div>
@@ -611,7 +581,7 @@ title="Зберегти зміни"
 • <strong>Координати</strong> — формат MGRS: префікс із списку + два блоки по 5 цифр (easting) та (northing).<br>
 • <strong>Боєприпас</strong> — зі списку або довільний ввід.<br>
 • <strong>Стрім</strong> — посилання на потік або плейсхолдер «---».<br>
-• <strong>Результат</strong> — зі списку або довільний текст; для зручності статистики рекомендовано формат <strong>тип результату</strong>, при потребі пробіл і <strong>деталі в круглих дужках</strong>. Для KPI і групування в журналі використовується лише частина <em>до першої дужки</em> (ключ); текст у дужках лише уточнює звіт і не змінює категорію. Наприклад: <code>Ураження (знищення антени)</code>.
+• <strong>Результат</strong> — зі списку або довільний текст; для зручності статистики рекомендовано формат <strong>тип результату</strong>, при потребі пробіл і <strong>деталі в круглих дужках</strong>. Для групування у зведенні «Статистика» використовується лише частина <em>до першої дужки</em> (ключ); текст у дужках лише уточнює звіт і не змінює категорію. Наприклад: <code>Ураження (знищення антени)</code>.
 </p>
 </div>
 </details>
@@ -625,6 +595,7 @@ title="Зберегти зміни"
   <div class="help-tip"><span class="help-tip-ico">✋</span><span><strong>Довге натискання</strong> на полі зі списком (борт, характер, боєприпас, результат) — перемикає режим у «довільний ввід».</span></div>
   <div class="help-tip"><span class="help-tip-ico">🔢</span><span>Лічильник екіпажу після «Готово» збільшується автоматично — можна не торкатися.</span></div>
   <div class="help-tip"><span class="help-tip-ico">📋</span><span>«Готово» одразу <em>копіює</em> текст у буфер — вставляйте у Signal / Telegram / Sheets.</span></div>
+  <div class="help-tip"><span class="help-tip-ico">📌</span><span><strong>Введене не зникає.</strong> Можна заповнити частину полів, піти в журнал, на карту чи в налаштування списків і повернутися — час, координати, борт, боєприпас, стрім і результат лишаться на місці, навіть якщо сторінка перезавантажилась. Чиста форма з поточним часом — після нового запуску застосунку.</span></div>
 </div>
 
 <p class="help-callout help-callout--action"><strong>Кнопка «Готово»</strong> збирає поля форми, перевіряє їх, створює новий звіт у локальній базі (унікальний id, версія 1, текст будується з полів), показує текст у полі внизу, копіює його в буфер і оновлює дату форми й лічильник екіпажу. Залежно від режиму відправки в налаштуваннях звіт може лишитися чернеткою, одразу піти в чергу на відправку або отримати відкладену відправку.</p>
@@ -635,12 +606,12 @@ title="Зберегти зміни"
 </details>
 
 <!-- ────────────────────────────────────────────────────────────── -->
-<!-- Секція 3 — Журнал і KPI.                                       -->
+<!-- Секція 3 — Журнал і статистика.                                -->
 <!-- ────────────────────────────────────────────────────────────── -->
 <details class="help-section" id="help-sec-3">
 <summary class="help-section-title">
   <span class="help-section-num">3</span>
-  <span class="help-section-heading-text">Журнал, KPI та робота з історією</span>
+  <span class="help-section-heading-text">Журнал, статистика та робота з історією</span>
   <svg class="help-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"
        stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <polyline points="6 9 12 15 18 9"/>
@@ -648,21 +619,13 @@ title="Зберегти зміни"
 </summary>
 <div class="help-section-body">
 
-<p>Екран <strong>«Журнал та статистика»</strong> читає звіти з <strong>IndexedDB</strong>; є верхня межа кількості записів на пристрої. Один і той самий період і пошук застосовуються до зведення, списку карток і карти.</p>
+<p>Екран <strong>«Журнал та статистика»</strong> читає звіти з <strong>IndexedDB</strong>; архів на пристрої розрахований на <strong>1000 звітів</strong> (рядок «Архів: N з 1000» над списком). Один і той самий період і пошук застосовуються до зведення, списку карток і карти.</p>
 
 <details class="help-sub" open>
-<summary class="help-sub-summary">Фільтр періоду та KPI</summary>
+<summary class="help-sub-summary">Фільтр періоду</summary>
 <div class="help-sub-body">
 <p class="help-kicker"><em>Фільтр періоду</em></p>
 <p>Дата «від / до» у форматі <strong>ДД.ММ.РРРР</strong>, час «від / до» — <strong>ГГ:ХХ</strong> (24 години). Фільтр будується зі структурованих полів звіту: <strong>дата місії</strong> та <strong>час ураження/втрати</strong> (не з «ручного» парсингу довільного тексту). При відкритті екрана журналу період за замовчуванням скидається на <strong>поточний день</strong> (00:00–23:59). Кнопка «Показати» фіксує умови; лічильник «Відібрано звітів: N із M» показує, скільки записів потрапило під фільтр порівняно з усім архівом.</p>
-
-<p class="help-kicker"><em>KPI (плитки зверху):</em></p>
-<p class="help-bullets">
-• <strong>Вильотів</strong> — кількість звітів, що пройшли фільтр періоду й пошуку.<br>
-• <strong>Уражень</strong> — серед них кількість із нормалізованою категорією результату «Ураження» за ключем до дужок.<br>
-• <strong>Втрат</strong> — кількість із категорією «Втрата борта».<br>
-• <strong>Ефективність</strong> — відношення уражень до загальної кількості відфільтрованих вильотів у відсотках.
-</p>
 </div>
 </details>
 
@@ -687,7 +650,7 @@ title="Зберегти зміни"
 <div class="help-sub-body">
 <p class="help-subblock"><strong class="help-subblock-label">Вкладка «Статистика».</strong> Текстове зведення з розбивкою за бортами, боєприпасами, типами місій і групами нормалізованих результатів. Повторювані формулювання (на кшталт варіантів «ураження…») зводяться до однієї категорії там, де це передбачено мапінгом. Текст зведення можна скопіювати кнопкою «Копіювати зведення».</p>
 
-<p class="help-subblock"><strong class="help-subblock-label">Вкладка «Журнал».</strong> Картка показує текст звіту, збоку — крапка-індикатор <strong>статусу синхронізації</strong> (наведіть для підказки). Внизу ряд іконок: <strong>копіювати</strong>, за підтримки браузера — <strong>поділитися</strong>, далі дії залежно від статусу — <strong>відправити</strong> в Google Таблицю, <strong>редагувати</strong>, відкладена відправка, скасування черги, <strong>виправити</strong> для вже надісланих (після збереження — «надіслати зміни»), повтор після помилки тощо. Текст звіту завжди відповідає полям; повне редагування через діалог.</p>
+<p class="help-subblock"><strong class="help-subblock-label">Вкладка «Журнал».</strong> Картка показує текст звіту, збоку — крапка-індикатор <strong>статусу синхронізації</strong> (наведіть для підказки). Внизу ряд іконок: <strong>копіювати</strong>, за підтримки браузера — <strong>поділитися</strong>, далі дії залежно від статусу — <strong>відправити</strong> в Google Таблицю, <strong>редагувати</strong>, відкладена відправка, скасування черги, <strong>виправити</strong> для вже надісланих (після збереження — «надіслати зміни»), повтор після помилки тощо; останньою завжди стоїть червона іконка <strong>видалити</strong>. Текст звіту завжди відповідає полям; повне редагування через діалог.</p>
 </div>
 </details>
 
@@ -702,10 +665,11 @@ title="Зберегти зміни"
 
 <p class="help-kicker"><em>Видалення записів із історії:</em></p>
 <p class="help-bullets">
+• <strong>Один звіт</strong> — червона іконка <strong>кошика</strong> на картці у вкладці «Журнал» (остання в ряду, за роздільником). Доступна для звіту в будь-якому статусі. Так само один запис можна видалити на <strong>карті</strong> в картці звіту.<br>
 • <strong>«Видалити звіти зі списку»</strong> (у журналі) — назавжди прибирає лише ті записи, які <em>зараз видимі</em> у списку з урахуванням періоду і пошуку.<br>
-• <strong>«Видалити всі звіти»</strong> — на екрані <strong>«Дані та інтеграція»</strong>, блок «Очистити архів»; повністю очищає локальний журнал на цьому пристрої. Спочатку зробіть експорт за потреби.<br>
-• На <strong>карті</strong> в картці звіту — кнопка з іконкою кошика видаляє один запис після підтвердження.
+• <strong>«Видалити всі звіти»</strong> — на екрані <strong>«Дані та інтеграція»</strong>, блок «Очистити архів»; повністю очищає локальний журнал на цьому пристрої. Спочатку зробіть експорт за потреби.
 </p>
+<p class="help-callout help-callout--action"><strong>Подвійне підтвердження.</strong> Будь-яке видалення звітів проходить <strong>два кроки</strong>: спочатку показано, що саме буде видалено (для одного звіту — його текст), потім окреме запитання «Ви впевнені?». На другому кроці кнопки міняються місцями, а кнопка підтвердження вмикається з невеликою затримкою — випадковий подвійний тап нічого не видалить. Видалення стосується лише цього пристрою: рядок, уже записаний у Google Таблицю, лишається там.</p>
 </div>
 </details>
 
@@ -792,7 +756,7 @@ title="Зберегти зміни"
 <ol class="help-stepper">
   <li><span class="help-stepper-num">1</span>Натисніть <strong>«Експорт»</strong>.</li>
   <li><span class="help-stepper-num">2</span>Введіть <strong>парольну фразу</strong> (ключ) і повторіть її — обидва введення мають збігатися.</li>
-  <li><span class="help-stepper-num">3</span>Браузер збереже файл <code>uav_reports_v2.enc.json</code> — JSON-обгортка навколо зашифрованого вмісту (формат v2).</li>
+  <li><span class="help-stepper-num">3</span>Браузер збереже файл на кшталт <code>uav_reports_v2_2026-11-11_20-45-07.enc.json</code> — в імені <strong>дата й час пристрою на момент збереження</strong>, тож копії не перезаписують одна одну. Усередині — JSON-обгортка навколо зашифрованого вмісту (формат v2).</li>
   <li><span class="help-stepper-num">4</span>Зберігайте файл і пароль <strong>окремо</strong>. Без пароля дані з файлу не відновити.</li>
 </ol>
 
@@ -868,10 +832,11 @@ title="Зберегти зміни"
 • типи місій (Характер);<br>
 • боєприпаси;<br>
 • результати місії;<br>
-• префікси MGRS;<br>
-• стріми.
+• префікси MGRS.
 </p>
-<p>Елементи можна додавати, видаляти й переставляти перетягуванням. Збережені на пристрої перевизначення мають пріоритет над початковим файлом <code>config.json</code>; є можливість скинути списки до базових значень.</p>
+<p>Елементи можна додавати, видаляти й переставляти перетягуванням за ручку ліворуч. <strong>Новий пункт</strong> вводиться у полі над списком і стає <strong>першим</strong> у списку (і першим у випадаючому списку форми); за потреби перетягніть його на інше місце.</p>
+<p class="help-callout help-callout--action"><strong>Автозбереження.</strong> Окремої кнопки «зберегти» немає: кожна дія — додати, видалити, переставити — зберігається одразу і так само одразу з’являється у формі звіту. Уже заповнені поля форми при цьому не скидаються.</p>
+<p>Збережені на пристрої перевизначення мають пріоритет над початковим файлом <code>config.json</code>.</p>
 
 <p class="help-callout help-callout--tip">Інтеграція з Google Таблицями перенесена на екран <strong>«Дані та інтеграція»</strong> (разом із резервним копіюванням). Екран <strong>«Налаштування списків»</strong> містить лише редактор значень для полів форми.</p>
 </div>
@@ -1246,7 +1211,7 @@ data-screen-menu-close
   integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
   crossorigin=""
 ></script>
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script src="js/vendor/Sortable.min.js"></script>
 <script type="module" src="js/app.js"></script>
 
 </body>

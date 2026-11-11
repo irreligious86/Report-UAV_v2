@@ -61,9 +61,15 @@
 
 import { listReports, deleteReportsByIds } from "../report-actions.js";
 import { STORAGE_KEY_MAP_BASEMAP } from "../constants.js";
-import { $, setStatus, isoToDDMMYYYY } from "../utils.js";
+import { $, isoToDDMMYYYY } from "../utils.js";
+import { showToast } from "../toast.js";
 import { copyText } from "../clipboard.js";
-import { toPoint } from "https://esm.sh/mgrs@2.1.0";
+import { confirmDeletion } from "../confirm-dialog.js";
+// EN: Vendored copy — a static import from a CDN would break the whole module
+//     graph (and therefore the app boot) when the device is offline.
+// UA: Локальна копія — статичний імпорт із CDN ламає весь граф модулів
+//     (тобто запуск застосунку), коли пристрій офлайн.
+import { toPoint } from "../vendor/mgrs.esm.js";
 import {
   loadPeriodFilter,
   isWithinPeriodFilter,
@@ -210,7 +216,7 @@ function resolveReportStorageId(report) {
 async function shareReportText(report) {
   const text = String(report?.text || "").trim();
   if (!text) {
-    setStatus("Немає тексту для поширення.");
+    showToast("Немає тексту для поширення.", { error: true });
     return;
   }
 
@@ -220,27 +226,21 @@ async function shareReportText(report) {
         title: "Звіт місії",
         text,
       });
-      setStatus("Звіт передано в меню поширення.");
+      showToast("Звіт передано в меню поширення.");
       return;
     }
 
     const copied = await copyText(text);
-    setStatus(
-      copied
-        ? "Меню поширення недоступне. Текст скопійовано."
-        : "Меню поширення недоступне."
-    );
+    if (copied) showToast("Меню поширення недоступне. Текст скопійовано.");
+    else showToast("Меню поширення недоступне.", { error: true });
   } catch (err) {
     if (err && err.name === "AbortError") {
       return;
     }
 
     const copied = await copyText(text);
-    setStatus(
-      copied
-        ? "Не вдалося відкрити поширення. Текст скопійовано."
-        : "Не вдалося відкрити поширення."
-    );
+    if (copied) showToast("Не вдалося відкрити поширення. Текст скопійовано.");
+    else showToast("Не вдалося відкрити поширення.", { error: true });
   }
 }
 
@@ -355,12 +355,13 @@ function initMapOverlays() {
     copyBtn.onclick = async () => {
       const text = String(activeReport?.text || "").trim();
       if (!text) {
-        setStatus("Немає тексту для копіювання.");
+        showToast("Немає тексту для копіювання.", { error: true });
         return;
       }
 
       const ok = await copyText(text);
-      setStatus(ok ? "Звіт скопійовано." : "Помилка копіювання.");
+      if (ok) showToast("Звіт скопійовано.");
+      else showToast("Помилка копіювання.", { error: true });
     };
   }
 
@@ -374,16 +375,18 @@ function initMapOverlays() {
     deleteBtn.onclick = async () => {
       const rid = resolveReportStorageId(activeReport);
       if (!rid) {
-        setStatus("Не вдалося знайти запис у журналі для видалення.");
+        showToast("Не вдалося знайти запис у журналі для видалення.", { error: true });
         return;
       }
-      const ok = window.confirm(
-        "Видалити цей звіт з архіву на пристрої? Дію не можна скасувати."
-      );
+      const ok = await confirmDeletion({
+        title: "Видалити звіт?",
+        message: "Звіт буде видалено з архіву на цьому пристрої. Таблиця Google не змінюється.",
+        details: String(activeReport?.text || ""),
+      });
       if (!ok) return;
 
       await deleteReportsByIds([rid]);
-      setStatus("Звіт видалено з архіву.");
+      showToast("Звіт видалено з архіву.");
 
       activeReport = null;
       activeMissionGroup = null;

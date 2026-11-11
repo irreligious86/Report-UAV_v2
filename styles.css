@@ -14,6 +14,8 @@
   --value: #00ff66;
   --muted: #7aa7a9;
   --danger: #ff4d6d;
+  /* Primary-action tint (send / resend icons). Was referenced but never defined. */
+  --accent: #55f3ff;
   --stroke: rgba(85, 243, 255, 0.18);
   --stroke2: rgba(0, 255, 102, 0.28);
 
@@ -660,45 +662,8 @@ input.ui-time {
 }
 
 /* ========================================================= */
-/* KPI tiles + tabs                                          */
+/* Journal tabs                                              */
 /* ========================================================= */
-
-.dashboard-kpi {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.kpi-box {
-  padding: 10px;
-  border: 1px solid var(--stroke);
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(10, 15, 16, 0.92), rgba(10, 15, 16, 0.65));
-  text-align: center;
-  box-shadow: var(--shadow-btn);
-}
-
-.kpi-label {
-  color: var(--label);
-  font-size: 13px;
-  opacity: 0.9;
-}
-
-.kpi-value {
-  margin-top: 4px;
-  color: var(--value);
-  font-size: 22px;
-  font-weight: 900;
-}
-
-.kpi-value.success {
-  color: var(--value);
-}
-
-.kpi-value.danger {
-  color: var(--danger);
-}
 
 .dashboard-tabs {
   display: flex;
@@ -970,6 +935,162 @@ input.ui-time {
   margin-top: 12px;
 }
 
+/* ========================================================= */
+/* Toast — short message above every screen (js/toast.js)    */
+/* ========================================================= */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(22px + env(safe-area-inset-bottom));
+  z-index: 10000;
+  max-width: min(520px, calc(100vw - 28px));
+  padding: 10px 16px;
+  border: 1px solid rgba(0, 255, 102, 0.55);
+  border-radius: 12px;
+  background: rgba(6, 14, 12, 0.96);
+  color: var(--value);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 8px);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.toast--visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.toast--error {
+  border-color: rgba(255, 77, 109, 0.8);
+  color: var(--danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    transition: none;
+  }
+}
+
+/* ========================================================= */
+/* Two-step delete confirmation (js/confirm-dialog.js)       */
+/* ========================================================= */
+
+.confirm-dialog {
+  max-width: calc(100vw - 32px);
+  width: min(440px, 100%);
+  padding: 0;
+  border: 1px solid rgba(255, 77, 109, 0.55);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(10, 15, 16, 0.98), rgba(10, 15, 16, 0.92));
+  color: var(--value);
+  box-shadow:
+    0 0 28px rgba(255, 77, 109, 0.18),
+    var(--shadow-btn);
+}
+
+.confirm-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.confirm-dialog-inner {
+  padding: 16px;
+}
+
+.confirm-dialog-step {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.confirm-dialog-title {
+  margin-top: 6px;
+  color: var(--danger);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.confirm-dialog-message {
+  margin-top: 8px;
+  color: var(--label);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.confirm-dialog-details {
+  max-height: 34vh;
+  margin-top: 10px;
+  padding: 10px;
+  overflow-y: auto;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--value);
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.confirm-dialog-actions > button {
+  flex: 1 1 0;
+  min-height: 48px;
+  padding: 10px 12px;
+  font-size: 15px;
+}
+
+.confirm-dialog-danger {
+  border-color: rgba(255, 77, 109, 0.9);
+  color: #fff;
+  background: linear-gradient(180deg, rgba(140, 40, 65, 0.9), rgba(45, 14, 22, 0.95));
+}
+
+.confirm-dialog-danger:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Final step: stronger frame so the two steps do not look identical. */
+.confirm-dialog--final {
+  border-width: 2px;
+  border-color: var(--danger);
+}
+
+.confirm-dialog[open] {
+  animation: confirm-dialog-in 0.12s ease-out;
+}
+
+@keyframes confirm-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confirm-dialog[open] {
+    animation: none;
+  }
+}
+
 .journal-cards {
   display: flex;
   flex-direction: column;
@@ -1169,9 +1290,10 @@ input.ui-time {
 
 .card-action-icon {
   display: flex;
+  flex: 0 1 44px;
   align-items: center;
   justify-content: center;
-  width: 44px;
+  min-width: 28px;
   height: 44px;
   padding: 0;
   border: 1px solid transparent;
@@ -1198,6 +1320,28 @@ input.ui-time {
 .card-action-icon.accent:active {
   background: rgba(85, 243, 255, 0.14);
   border-color: rgba(85, 243, 255, 0.7);
+}
+/* Danger = delete; always last, set apart from the other actions by a divider */
+.card-action-icon.danger {
+  position: relative;
+  margin-left: 8px;
+  color: var(--danger);
+  border-color: rgba(255, 77, 109, 0.35);
+}
+.card-action-icon.danger::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: -9px;
+  width: 1px;
+  background: var(--stroke2);
+}
+.card-action-icon.danger:hover,
+.card-action-icon.danger:active {
+  color: #fff;
+  background: rgba(255, 77, 109, 0.22);
+  border-color: rgba(255, 77, 109, 0.8);
 }
 /* Warn = error retry */
 .card-action-icon.warn {
@@ -1359,6 +1503,10 @@ input.ui-time {
   margin-top: 4px;
 }
 
+.data-transfer-status.error {
+  color: var(--danger);
+}
+
 /* Legacy class — no longer used in new layout */
 .integration-card { display: none; }
 .journal-transfer { display: none; }
@@ -1391,6 +1539,10 @@ input.ui-time {
   font-size: 13px;
   font-weight: 700;
   color: var(--label);
+}
+
+.integration-label[hidden] {
+  display: none;
 }
 
 .integration-input {
@@ -1446,28 +1598,6 @@ input.ui-time {
   margin: 0;
   font-size: 18px;
   color: var(--label);
-}
-
-#listsQuickSaveBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-  font-size: 18px;
-  cursor: pointer;
-}
-
-#listsQuickSaveBtn:hover {
-  background: rgba(255, 255, 255, 0.14);
-}
-
-#listsQuickSaveBtn.is-saved {
-  background: rgba(60, 180, 90, 0.22);
 }
 
 #listsTabs {
@@ -1528,12 +1658,50 @@ input.ui-time {
   gap: 8px;
 }
 
-/* Add area */
+/* Add area (sits above the list — a new item appears right below it) */
 #listsControls {
   display: flex;
   gap: 10px;
   align-items: center;
   margin-top: 10px;
+}
+
+/* Autosave feedback line under the add area */
+.lists-status {
+  min-height: 18px;
+  margin-top: 8px;
+  text-align: left;
+}
+
+.lists-status.is-saved {
+  color: var(--value);
+}
+
+.lists-autosave-note {
+  margin: 4px 0 0;
+}
+
+/* Just-added item: brief highlight so the eye finds it at the top */
+#listsItems .lists-item--new {
+  animation: lists-item-new 1.6s ease-out;
+}
+
+@keyframes lists-item-new {
+  0% {
+    border-color: rgba(0, 255, 102, 0.9);
+    background: rgba(0, 255, 102, 0.16);
+  }
+
+  100% {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #listsItems .lists-item--new {
+    animation: none;
+  }
 }
 
 #listsControls input {
@@ -1619,10 +1787,6 @@ input.ui-time {
 
   #listsControls button {
     width: 100%;
-  }
-
-  .dashboard-kpi {
-    grid-template-columns: 1fr 1fr;
   }
 
   /* Карта на всю ширину та вища на смартфонах (звичайний режим) */
@@ -3299,13 +3463,13 @@ input.ui-time {
   position: relative;
   top: -4px;
 
-  /* левая часть чёткая, правая растворяется */
+  /* Left part crisp, right part fades — but not to nothing: the badge is
+     now four characters ("v2.1") and the minor digit must stay readable. */
   background: linear-gradient(
     to right,
-    rgba(140, 165, 155, 0.7) 0%,
-    rgba(140, 165, 155, 0.45) 40%,
-    rgba(140, 165, 155, 0.18) 75%,
-    rgba(140, 165, 155, 0.04) 100%
+    rgba(140, 165, 155, 0.75) 0%,
+    rgba(140, 165, 155, 0.6) 50%,
+    rgba(140, 165, 155, 0.4) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;

@@ -29,7 +29,7 @@
 │  report-model.js   report-format.js         │
 │  sync-service.js   filters.js               │
 │  result-mapping.js generate.js              │
-│  journal-stats.js                           │
+│  journal-stats.js   form-draft.js           │
 ├─ Storage ───────────────────────────────────┤
 │  db.js             reports-store.js         │
 │  sync-queue-store.js  settings-store.js     │
@@ -44,7 +44,9 @@
 │  constants.js  utils.js  coords.js          │
 │  counter.js    clipboard.js  config.js      │
 │  events.js     streams.js  longPressEdit.js │
-│  navigation.js                              │
+│  navigation.js confirm-dialog.js  toast.js  │
+├─ Vendor (локальні копії) ───────────────────┤
+│  vendor/mgrs.esm.js  vendor/Sortable.min.js │
 └─────────────────────────────────────────────┘
 ```
 
@@ -82,7 +84,7 @@ DRAFT → SCHEDULED (delayed) → QUEUED → SENDING → SENT [→ locked]
 
 1. **Форма «Готово»:** `generate.js` → `report-actions.createAndStoreReport` → IDB → events
 2. **Фільтрація:** `filters.js` — `getImpactTimestampForReport` використовує `fields.date + fields.impact`, fallback `createdAt`
-3. **Журнал:** `journal.js` — `renderForSelectedPeriod()`, KPI, картки, редагування
+3. **Журнал:** `journal.js` — `renderForSelectedPeriod()`, зведення, картки, редагування
 4. **Карта:** `map.js` — ті ж відфільтровані звіти, `fields.coords` (MGRS→lat/lng)
 5. **Sync:** `sync-service.js` → `processSyncQueue` (drain chain, serialized) → `google-sheets-api.js` POST
 6. **UI-події:** `reportsChanged` / `reportsUpdated` — журнал підписаний і перемальовується
@@ -92,17 +94,20 @@ DRAFT → SCHEDULED (delayed) → QUEUED → SENDING → SENT [→ locked]
 | Ключ | Модуль | Зміст |
 |------|--------|-------|
 | `uav_report_config_overrides_v1` | `config.js` | Перевизначення списків |
+| `uav_form_draft_v1` (**sessionStorage**) | `form-draft.js` | Чернетка форми: переживає reload, зникає при новому запуску |
 | `STORAGE_KEY_DEVICE_ID` | `constants.js` | Ідентифікатор пристрою |
 | counter | `counter.js` | Лічильник екіпажу |
 | streams | `streams.js` | Кеш стрімів |
 | period filter | `filters.js` | Останній вибраний період |
 | basemap | `map.js` | Вибрана підкладка карти |
 
-### Зовнішні залежності (CDN)
+### Зовнішні залежності
 
-- **Leaflet 1.9.4** — CSS: `<link>` в index.html; JS: dynamic import в `map.js` (esm.sh)
-- **mgrs 2.1.0** — dynamic import в `map.js` (esm.sh)
-- **Sortable.js** — dynamic import в `settings.js` (esm.sh)
+- **mgrs 2.1.0** — локальна копія `js/vendor/mgrs.esm.js` (статичний import у `map.js`)
+- **Sortable.js 1.15.2** — локальна копія `js/vendor/Sortable.min.js` (`<script>` в index.html → `window.Sortable`)
+- **Leaflet 1.9.4** — CDN (unpkg): CSS `<link>` + `<script>` в index.html → `window.L`; без мережі карта просто не ініціалізується
+
+Усе, без чого застосунок не стартує, лежить локально і кешується Service Worker-ом. **Не додавати статичних `import` з CDN** — без мережі впаде весь граф модулів і застосунок не запуститься.
 
 Жодного build-степу. Pure ES modules. Service Worker кешує всі локальні assets.
 
@@ -127,7 +132,7 @@ DRAFT → SCHEDULED (delayed) → QUEUED → SENDING → SENT [→ locked]
 
 1. **Поля Report:** контракт між `report-format.js`, IndexedDB, `google-sheets-api.js` та `Code.gs`. Змінив поле → перевір усі чотири точки.
 2. **`collectFieldsFromEditDialog`** шукає DOM-елементи за `data-field-key` — не прибирай цей атрибут.
-3. **`appendActionIcons`** у `journal.js` — без неї цикл карток обривається, KPI не оновлюється.
+3. **`appendActionIcons`** у `journal.js` — без неї цикл карток обривається, зведення не оновлюється.
 4. **Відповідь Apps Script:** для upsert/ping/prepare — валідний JSON з `ok: true` при успіху.
 5. **Імена stores IDB** зашиті в `db.js` — не перейменовувати без міграції.
 
@@ -135,11 +140,20 @@ DRAFT → SCHEDULED (delayed) → QUEUED → SENDING → SENT [→ locked]
 
 - Після змін кешованих файлів — підняти `CACHE_NAME` в `sw.js`.
 - Новий JS-файл → додати в `sw.js` ASSETS.
-- Перевірка: `npm run verify` (tools/verify-index.mjs).
+- Перевірка: `npm run verify` (tools/verify-index.mjs) — ASSETS ↔ файли в `js/`, заборона CDN-імпортів, узгодженість версії.
+- Версія застосунку: `APP_VERSION` у `constants.js` + `manifest.json` (`name`) + бейдж в `index.html` + `package.json`.
+
+### UI-контракти (v2.1)
+
+- **Будь-яке видалення звітів** — лише через `confirmDeletion()` з `confirm-dialog.js` (два кроки). Не використовувати `window.confirm` для видалень.
+- **Повідомлення користувачу поза екраном форми** — `showToast()` з `toast.js`. `utils.setStatus()` пише в `#status` на екрані форми і на інших екранах невидимий.
+- **Списки (settings.js)** — кнопки «зберегти» немає: кожна зміна йде через `commitActiveList_()` (зберегти → застосувати до форми → перемалювати). Новий пункт — `unshift`.
+- **`config.applyConfig()`** можна викликати повторно при заповненій формі: він зберігає поточний вибір у select-ах. Не додавати туди примусове виставлення defaults.
+- **Після мережевого запиту в черзі sync** стан звіту перечитується (`readStateAfterPost_`): звіт могли видалити / змінити, поки тривав POST. Не записувати назад знімок, зроблений до POST.
 
 ### Типовий баг: «дані є, журнал порожній»
 
-JS-помилка **під час побудови картки** (виклик неіснуючої функції) — лічильник «Відібрано» вже оновлений, цикл обривається до `updateKPI` і додавання карток. Перевіряй консоль.
+JS-помилка **під час побудови картки** (виклик неіснуючої функції) — лічильник «Відібрано» вже оновлений, цикл обривається до оновлення зведення і додавання карток. Перевіряй консоль.
 
 ### Конвенції нейминга
 
@@ -159,9 +173,10 @@ UI: **українська**. Код: коментарі EN + UA в JSDoc. До�
 1. **Не міняти формат `reportId`** (`rpt_YYYYMMDD_XXXXXXXX`) — на ньому тримається upsert в Google Sheets, merge при імпорті, пошук у IDB.
 2. **Не перейменовувати stores IDB** (`reports`, `sync_queue`, `settings`, `sync_log`) — без написання міграції в `db.js` `onupgradeneeded` це зламає всі дані.
 3. **Не прибирати атрибут `data-field-key`** з DOM — `collectFieldsFromEditDialog` залежить від нього.
-4. **Не видаляти `appendActionIcons`** у `journal.js` — без неї цикл карток обривається, KPI не оновлюється.
+4. **Не видаляти `appendActionIcons`** у `journal.js` — без неї цикл карток обривається, зведення не оновлюється.
 5. **Не використовувати `var`, `arguments`, `new Function`** — код 100% ES modules.
 6. **Не додавати JS-файли без оновлення `sw.js` ASSETS** + bump `CACHE_NAME`.
+7. **Не імпортувати статично з CDN** (`import … from "https://…"`) — без мережі не стартує весь застосунок. Потрібна бібліотека → локальна копія в `js/vendor/`.
 
 ### Типові задачі (рецепти)
 
@@ -185,4 +200,6 @@ UI: **українська**. Код: коментарі EN + UA в JSDoc. До�
 ## Відоме / TODO
 
 - `icon.png` — дублікат `icon-512.png`, обидва у manifest.json
+- `REPORTS_LIMIT` (1000) застосовується лише при імпорті резервної копії; при створенні звіту кнопкою «Готово» ліміт не форсується (старі звіти автоматично не видаляються)
+- `streams.js` накопичує значення поля «Стрім» у localStorage, але ніде їх не показує
 - Legacy-імпорт старих записів `{ ts, text }` не входить у цей застосунок (окремий конвертер)

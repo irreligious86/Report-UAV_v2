@@ -1,5 +1,5 @@
 /**
- * Journal & statistics screen — list, KPIs, edit dialog, sync actions.
+ * Journal & statistics screen — list, summary, edit dialog, sync actions.
  *
  * EN:
  *   This screen has two tabs ("Статистика" and "Журнал") that share the
@@ -9,8 +9,8 @@
  *     - reads all reports via `report-actions.listReports`,
  *     - filters by the saved period (from/to date and time) and the
  *       search query (in the canonical text),
- *     - renders the cards on the "Журнал" tab and the textual summary +
- *       KPI tiles on the "Статистика" tab,
+ *     - renders the cards on the "Журнал" tab and the textual summary
+ *       on the "Статистика" tab,
  *     - each card has action icons whose set depends on the report's
  *       `syncStatus`:
  *         DRAFT   → Send / Edit / Schedule
@@ -20,6 +20,7 @@
  *         RESYNC_REQUIRED → Send-changes / Edit
  *         ERROR   → Retry / Edit
  *         LOCKED  → Correct
+ *         any status → Delete (two-step confirmation)
  *     - all stats live in `journal-stats.js` (extracted module) so this
  *       file stays focused on UI wiring,
  *     - subscribes to the global `reportsUpdated` event so the screen
@@ -39,8 +40,8 @@
  *     - читає всі звіти через `report-actions.listReports`,
  *     - фільтрує за збереженим періодом (дата/час від/до) і пошуковим
  *       запитом (по канонічному тексту),
- *     - малює картки на вкладці «Журнал» і текстове зведення + плитки
- *       KPI на «Статистиці»,
+ *     - малює картки на вкладці «Журнал» і текстове зведення
+ *       на «Статистиці»,
  *     - на кожній картці — набір іконок-дій, що залежить від
  *       `syncStatus` звіту:
  *         DRAFT   → Надіслати / Редагувати / Запланувати
@@ -50,6 +51,7 @@
  *         RESYNC_REQUIRED → Надіслати зміни / Редагувати
  *         ERROR   → Повторити / Редагувати
  *         LOCKED  → Виправити
+ *         будь-який статус → Видалити (двокрокове підтвердження)
  *     - вся статистика — у `journal-stats.js` (виокремлений модуль), щоб
  *       цей файл лишався UI-орієнтованим,
  *     - підписаний на глобальну подію `reportsUpdated` — щоб реагувати
@@ -64,7 +66,8 @@
  * @module screens/journal
  */
 
-import { $, isoToDDMMYYYY, setStatus } from "../utils.js";
+import { $, isoToDDMMYYYY } from "../utils.js";
+import { showToast } from "../toast.js";
 import { formatUiDateFromIso, parseUiDateToIso, formatUiTime } from "../date-utils.js";
 import {
   bindNativeDatePicker,
@@ -72,6 +75,7 @@ import {
   syncNativePickerFromDisplay,
 } from "../ui-native-datetime.js";
 import { copyText } from "../clipboard.js";
+import { confirmDeletion } from "../confirm-dialog.js";
 import {
   listReports,
   deleteReportsByIds,
@@ -95,19 +99,29 @@ import {
   isWithinPeriodFilter,
   getImpactTimestampForReport,
 } from "../filters.js";
-import { computeStats, buildSummaryText, updateKPI } from "../journal-stats.js";
+import { computeStats, buildSummaryText } from "../journal-stats.js";
 
 let initialized = false;
 
 /** Розгорнутий список карток журналу (майже на весь екран). */
 let journalListExpanded = false;
 
+/**
+ * EN: Texts of the reports currently shown in the list, in list order —
+ *     the source for «Копіювати всі зі списку».
+ * UA: Тексти звітів, які зараз показано у списку, в порядку списку —
+ *     джерело для «Копіювати всі зі списку».
+ * @type {string[]}
+ */
+let listedTexts = [];
+
 // ── Utility helpers ───────────────────────────────────────────────────────────
 
-/** Copy text to clipboard with status message. */
+/** Copy text to clipboard and tell the user (toast — visible on this screen). */
 async function copyTextSmart(text) {
   const ok = await copyText(text);
-  setStatus(ok ? "Скопійовано." : "Помилка копіювання.");
+  if (ok) showToast("Скопійовано.");
+  else showToast("Помилка копіювання.", { error: true });
 }
 
 
@@ -293,27 +307,6 @@ function renderEditFields(container, report) {
   }
 }
 
-function readEditFields(container) {
-  const inputs = container?.querySelectorAll("[data-field-key]") || [];
-  /** @type {Record<string, string>} */
-  const raw = {};
-  inputs.forEach((el) => {
-    if (!(el instanceof HTMLInputElement)) return;
-    const k = el.dataset.fieldKey;
-    if (!k) return;
-    raw[k] = el.value;
-  });
-  let crewCounter = null;
-  if (raw.crewCounter !== undefined && raw.crewCounter !== "") {
-    const n = parseInt(raw.crewCounter, 10);
-    crewCounter = Number.isFinite(n) ? n : null;
-  }
-  return normalizeFields({
-    ...raw,
-    crewCounter,
-  });
-}
-
 /**
  * @param {import("../report-model.js").Report} report
  */
@@ -436,6 +429,17 @@ export async function initJournalScreen() {
     };
   }
 
+  const btnCopyAll = $("btnJournalCopyAll");
+  if (btnCopyAll) {
+    btnCopyAll.onclick = () => {
+      if (listedTexts.length === 0) {
+        showToast("Список порожній — нічого копіювати.", { error: true });
+        return;
+      }
+      void copyTextSmart(listedTexts.join("\n\n---\n\n"));
+    };
+  }
+
   const btnDelFiltered = $("btnJournalDeleteFiltered");
   if (btnDelFiltered) {
     btnDelFiltered.onclick = async () => {
@@ -449,12 +453,16 @@ export async function initJournalScreen() {
         );
         return;
       }
-      const ok = window.confirm(
-        `Видалити ${filtered.length} звіт(ів)? Це незворотно.`
-      );
+      const ok = await confirmDeletion({
+        title: `Видалити ${filtered.length} звіт(ів)?`,
+        message:
+          "Буде видалено ВСІ звіти, які зараз у списку (період + пошук). Решта архіву лишиться. Таблиця Google не змінюється.",
+        confirmLabel: `Видалити ${filtered.length}`,
+      });
       if (!ok) return;
       await deleteReportsByIds(filtered.map((r) => r.id));
       await renderForSelectedPeriod();
+      showToast(`Видалено звітів: ${filtered.length}.`);
     };
   }
 
@@ -463,9 +471,9 @@ export async function initJournalScreen() {
 
 /**
  * EN: Called when the journal screen becomes visible — resets the period to
- *     today (full day) and refreshes the list/KPI.
+ *     today (full day) and refreshes the list/summary.
  * UA: Викликається при показі екрана журналу — скидає період на сьогодні
- *     (повна доба) і оновлює список/KPI.
+ *     (повна доба) і оновлює список/зведення.
  */
 export function onJournalScreenShown() {
   savePeriodFilter(getDefaultPeriodFilter());
@@ -525,6 +533,11 @@ async function renderForSelectedPeriod() {
   }
 
   cardsEl.textContent = "";
+  // EN: Reset first — if the list ends up empty (or a card fails to build),
+  //     «Копіювати всі» must not copy the texts of a PREVIOUS list.
+  // UA: Спершу скидаємо — якщо список виявиться порожнім (або картка не
+  //     збереться), «Копіювати всі» не має копіювати тексти ПОПЕРЕДНЬОГО списку.
+  listedTexts = [];
 
   filtered.sort((a, b) => {
     const ta = getImpactTimestampForReport(a) ?? 0;
@@ -534,7 +547,6 @@ async function renderForSelectedPeriod() {
 
   if (filtered.length === 0) {
     summaryEl.textContent = "За обраний період звітів не знайдено.";
-    updateKPI(0, 0, 0);
     return;
   }
 
@@ -589,13 +601,7 @@ async function renderForSelectedPeriod() {
   }
 
   summaryEl.textContent = buildSummaryText(stats, period);
-
-  const btnCopyAll = $("btnJournalCopyAll");
-  if (btnCopyAll) {
-    btnCopyAll.onclick = () => copyTextSmart(stats.allTexts.join("\n\n---\n\n"));
-  }
-
-  updateKPI(stats.total, stats.hits, stats.loss);
+  listedTexts = stats.allTexts;
 }
 
 /**
@@ -754,6 +760,43 @@ function appendActionIcons(row, item) {
       if (r) openEditDialog(r, "correction");
     });
   }
+
+  // EN: Delete is available in EVERY status and always sits last, behind a
+  //     divider (see `.card-action-icon.danger`), so it is not hit while
+  //     aiming at a neighbour.
+  // UA: Видалення доступне у БУДЬ-ЯКОМУ статусі й завжди стоїть останнім, за
+  //     роздільником (див. `.card-action-icon.danger`) — щоб не натиснути
+  //     його, цілячись у сусідню кнопку.
+  mk(IC.trash, "Видалити звіт", () => deleteOneWithConfirm(item), "danger");
+}
+
+/**
+ * EN: Deletes a single report after the two-step confirmation. The report
+ *     text is shown in the dialog so the user sees what exactly goes away.
+ *     A row already written to Google Sheets is not touched — we say so.
+ * UA: Видаляє один звіт після двокрокового підтвердження. У діалозі показано
+ *     текст звіту — видно, що саме зникне. Рядок, уже записаний у Google
+ *     Таблицю, не чіпаємо — і попереджаємо про це.
+ * @param {import("../report-model.js").Report} item
+ */
+async function deleteOneWithConfirm(item) {
+  const wasPublished =
+    item.syncStatus === SYNC_STATUS.SENT ||
+    item.syncStatus === SYNC_STATUS.LOCKED ||
+    item.syncStatus === SYNC_STATUS.RESYNC_REQUIRED;
+
+  const ok = await confirmDeletion({
+    title: "Видалити звіт?",
+    message: wasPublished
+      ? "Звіт буде видалено з архіву на цьому пристрої. Він уже надісланий у Google Таблицю — рядок там залишиться."
+      : "Звіт буде видалено з архіву на цьому пристрої.",
+    details: item.text || "",
+  });
+  if (!ok) return;
+
+  await deleteReportsByIds([item.id]);
+  await renderForSelectedPeriod();
+  showToast("Звіт видалено.");
 }
 
 // ── Edit dialog save handler ──────────────────────────────────────────────────

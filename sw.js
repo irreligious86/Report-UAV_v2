@@ -7,7 +7,7 @@
  * UA: У `ASSETS` мають бути всі власні `.js`, які імпортує застосунок. Якщо
  *     модуль відсутній — офлайн може зламатися. Підвищуйте `CACHE_NAME` при змінах.
  */
-const CACHE_NAME = 'uav-report-v34';
+const CACHE_NAME = 'uav-report-v35';
 const ASSETS = [
   './',
   './index.html',
@@ -38,6 +38,9 @@ const ASSETS = [
   './js/report-actions.js',
   './js/longPressEdit.js',
   './js/generate.js',
+  './js/form-draft.js',
+  './js/confirm-dialog.js',
+  './js/toast.js',
   './js/filters.js',
   './js/date-utils.js',
   './js/ui-native-datetime.js',
@@ -60,6 +63,8 @@ const ASSETS = [
   './js/screens/map.js',
   './js/screens/help.js',
   './js/crypto/legacy-import.js',
+  './js/vendor/mgrs.esm.js',
+  './js/vendor/Sortable.min.js',
 ];
 
 self.addEventListener('install', (event) => {

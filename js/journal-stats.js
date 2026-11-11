@@ -1,14 +1,13 @@
 /**
- * EN: Statistics computation for the journal screen — counting, KPI, summary text.
+ * EN: Statistics computation for the journal screen — counting and summary text.
  *     Extracted from `screens/journal.js` to keep the screen module focused on UI.
- * UA: Обчислення статистики для екрану журналу — підрахунки, KPI, текст зведення.
+ * UA: Обчислення статистики для екрану журналу — підрахунки і текст зведення.
  *     Виокремлено з `screens/journal.js`, щоб UI-модуль не розростався.
  * @module journal-stats
  */
 
 import { normalizeFields } from "./report-format.js";
-import { mapResultToCategory, isKpiHit, isKpiLoss } from "./result-mapping.js";
-import { $ } from "./utils.js";
+import { mapResultToCategory } from "./result-mapping.js";
 import { isoToDdMmYyyy } from "./date-utils.js";
 
 /**
@@ -25,15 +24,13 @@ function inc(map, key) {
  * EN: Compute aggregated statistics from a list of reports.
  * UA: Обчислити агреговану статистику зі списку звітів.
  * @param {import("./report-model.js").Report[]} reports
- * @returns {{ total: number, hits: number, loss: number, drones: Map<string,number>, ammo: Map<string,number>, missionTypes: Map<string,number>, results: Map<string,number>, allTexts: string[] }}
+ * @returns {{ total: number, drones: Map<string,number>, ammo: Map<string,number>, missionTypes: Map<string,number>, results: Map<string,number>, allTexts: string[] }}
  */
 export function computeStats(reports) {
   const drones = new Map();
   const ammo = new Map();
   const missionTypes = new Map();
   const results = new Map();
-  let hits = 0;
-  let loss = 0;
   const allTexts = [];
 
   for (const item of reports) {
@@ -43,14 +40,10 @@ export function computeStats(reports) {
     if (f.drone) inc(drones, f.drone);
     if (f.ammo) inc(ammo, f.ammo);
     if (f.missionType) inc(missionTypes, f.missionType);
-    if (f.result) {
-      inc(results, mapResultToCategory(f.result));
-      if (isKpiHit(f.result)) hits += 1;
-      if (isKpiLoss(f.result)) loss += 1;
-    }
+    if (f.result) inc(results, mapResultToCategory(f.result));
   }
 
-  return { total: reports.length, hits, loss, drones, ammo, missionTypes, results, allTexts };
+  return { total: reports.length, drones, ammo, missionTypes, results, allTexts };
 }
 
 /**
@@ -87,25 +80,4 @@ export function buildSummaryText(stats, period) {
   block("Результатів", stats.results);
 
   return parts.join("\n\n");
-}
-
-/**
- * EN: Update KPI dashboard widgets in the DOM.
- * UA: Оновити KPI-віджети на сторінці.
- * @param {number} total
- * @param {number} hits
- * @param {number} loss
- */
-export function updateKPI(total, hits, loss) {
-  const kpiTotal = $("kpiTotal");
-  const kpiHits = $("kpiHits");
-  const kpiLoss = $("kpiLoss");
-  const kpiRate = $("kpiRate");
-  if (kpiTotal) kpiTotal.textContent = String(total);
-  if (kpiHits) kpiHits.textContent = String(hits);
-  if (kpiLoss) kpiLoss.textContent = String(loss);
-  if (kpiRate) {
-    const rate = total > 0 ? Math.round((hits / total) * 100) : 0;
-    kpiRate.textContent = rate + "%";
-  }
 }
