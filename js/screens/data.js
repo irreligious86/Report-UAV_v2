@@ -75,6 +75,7 @@ import {
   importEncryptedReports,
 } from "../crypto/importExport.js";
 import { deleteAllReports, listReports } from "../report-actions.js";
+import { confirmDeletion } from "../confirm-dialog.js";
 
 let initialized = false;
 
@@ -205,9 +206,13 @@ function bindDeleteAllReports() {
       window.alert("Архів уже порожній.");
       return;
     }
-    const ok = window.confirm(
-      `Видалити всі ${list.length} звіт(ів) з цього пристрою? Дію не скасувати.`
-    );
+    const ok = await confirmDeletion({
+      title: `Видалити всі ${list.length} звіт(ів)?`,
+      message:
+        "Буде очищено ВЕСЬ архів на цьому пристрої. Якщо резервної копії немає — спочатку зробіть експорт. Таблиця Google не змінюється.",
+      confirmLabel: "Видалити все",
+      finalMessage: `Усі ${list.length} звіт(ів) зникнуть назавжди. Відновити можна буде лише з резервної копії.`,
+    });
     if (!ok) return;
     await deleteAllReports();
     setTransferStatus(`Архів очищено (було ${list.length} звітів).`);

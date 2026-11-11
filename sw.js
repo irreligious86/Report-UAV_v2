@@ -39,6 +39,7 @@ const ASSETS = [
   './js/longPressEdit.js',
   './js/generate.js',
   './js/form-draft.js',
+  './js/confirm-dialog.js',
   './js/filters.js',
   './js/date-utils.js',
   './js/ui-native-datetime.js',

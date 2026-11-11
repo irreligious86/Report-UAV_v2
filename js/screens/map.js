@@ -63,6 +63,7 @@ import { listReports, deleteReportsByIds } from "../report-actions.js";
 import { STORAGE_KEY_MAP_BASEMAP } from "../constants.js";
 import { $, setStatus, isoToDDMMYYYY } from "../utils.js";
 import { copyText } from "../clipboard.js";
+import { confirmDeletion } from "../confirm-dialog.js";
 // EN: Vendored copy — a static import from a CDN would break the whole module
 //     graph (and therefore the app boot) when the device is offline.
 // UA: Локальна копія — статичний імпорт із CDN ламає весь граф модулів
@@ -381,9 +382,11 @@ function initMapOverlays() {
         setStatus("Не вдалося знайти запис у журналі для видалення.");
         return;
       }
-      const ok = window.confirm(
-        "Видалити цей звіт з архіву на пристрої? Дію не можна скасувати."
-      );
+      const ok = await confirmDeletion({
+        title: "Видалити звіт?",
+        message: "Звіт буде видалено з архіву на цьому пристрої. Таблиця Google не змінюється.",
+        details: String(activeReport?.text || ""),
+      });
       if (!ok) return;
 
       await deleteReportsByIds([rid]);

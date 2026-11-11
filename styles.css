@@ -933,6 +933,120 @@ input.ui-time {
   margin-top: 12px;
 }
 
+/* ========================================================= */
+/* Two-step delete confirmation (js/confirm-dialog.js)       */
+/* ========================================================= */
+
+.confirm-dialog {
+  max-width: calc(100vw - 32px);
+  width: min(440px, 100%);
+  padding: 0;
+  border: 1px solid rgba(255, 77, 109, 0.55);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(10, 15, 16, 0.98), rgba(10, 15, 16, 0.92));
+  color: var(--value);
+  box-shadow:
+    0 0 28px rgba(255, 77, 109, 0.18),
+    var(--shadow-btn);
+}
+
+.confirm-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.confirm-dialog-inner {
+  padding: 16px;
+}
+
+.confirm-dialog-step {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.confirm-dialog-title {
+  margin-top: 6px;
+  color: var(--danger);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.confirm-dialog-message {
+  margin-top: 8px;
+  color: var(--label);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.confirm-dialog-details {
+  max-height: 34vh;
+  margin-top: 10px;
+  padding: 10px;
+  overflow-y: auto;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--value);
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.confirm-dialog-actions > button {
+  flex: 1 1 0;
+  min-height: 48px;
+  padding: 10px 12px;
+  font-size: 15px;
+}
+
+.confirm-dialog-danger {
+  border-color: rgba(255, 77, 109, 0.9);
+  color: #fff;
+  background: linear-gradient(180deg, rgba(140, 40, 65, 0.9), rgba(45, 14, 22, 0.95));
+}
+
+.confirm-dialog-danger:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Final step: stronger frame so the two steps do not look identical. */
+.confirm-dialog--final {
+  border-width: 2px;
+  border-color: var(--danger);
+}
+
+.confirm-dialog[open] {
+  animation: confirm-dialog-in 0.12s ease-out;
+}
+
+@keyframes confirm-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confirm-dialog[open] {
+    animation: none;
+  }
+}
+
 .journal-cards {
   display: flex;
   flex-direction: column;

@@ -72,6 +72,7 @@ import {
   syncNativePickerFromDisplay,
 } from "../ui-native-datetime.js";
 import { copyText } from "../clipboard.js";
+import { confirmDeletion } from "../confirm-dialog.js";
 import {
   listReports,
   deleteReportsByIds,
@@ -449,9 +450,12 @@ export async function initJournalScreen() {
         );
         return;
       }
-      const ok = window.confirm(
-        `Видалити ${filtered.length} звіт(ів)? Це незворотно.`
-      );
+      const ok = await confirmDeletion({
+        title: `Видалити ${filtered.length} звіт(ів)?`,
+        message:
+          "Буде видалено ВСІ звіти, які зараз у списку (період + пошук). Решта архіву лишиться. Таблиця Google не змінюється.",
+        confirmLabel: `Видалити ${filtered.length}`,
+      });
       if (!ok) return;
       await deleteReportsByIds(filtered.map((r) => r.id));
       await renderForSelectedPeriod();
