@@ -150,11 +150,47 @@ export async function rotateSyncLog() {
 }
 
 /**
+ * EN: Re-reads the state AFTER the network round-trip. A POST takes seconds
+ *     (up to the 30 s timeout) and the user keeps working meanwhile, so the
+ *     snapshot taken before the POST may be stale:
+ *       - the report may have been deleted          → `latest` is undefined,
+ *       - its fields may have been edited           → `edited` is true,
+ *       - the queue task may have been cancelled or
+ *         replaced by a newer one                   → `taskAlive` is false.
+ *     Writing the pre-POST snapshot back would resurrect a deleted report or
+ *     silently drop an edit, so every post-POST write starts from `latest`.
+ * UA: Перечитує стан ПІСЛЯ мережевого запиту. POST триває секунди (до
+ *     таймауту 30 с), а користувач у цей час працює далі, тож знімок, взятий
+ *     перед POST, може застаріти:
+ *       - звіт могли видалити                         → `latest` undefined,
+ *       - його поля могли відредагувати               → `edited` true,
+ *       - завдання черги могли скасувати або замінити
+ *         новішим                                     → `taskAlive` false.
+ *     Запис знімка «до POST» воскресив би видалений звіт або мовчки загубив
+ *     би правку, тому кожен запис після POST стартує з `latest`.
+ *
+ * @param {import("./sync-queue-store.js").QueueItem} item
+ * @param {import("./report-model.js").Report} rSending
+ */
+async function readStateAfterPost_(item, rSending) {
+  const latest = await reportsStore.getReportById(rSending.id);
+  const queue = await queueStore.listQueueItems();
+  return {
+    latest,
+    edited: !!latest && latest.version !== rSending.version,
+    taskAlive: queue.some((q) => q.queueId === item.queueId),
+  };
+}
+
+/**
  * EN: Moves a report from SENDING back to QUEUED (with a back-off) or to
  *     ERROR (if it has failed too many times). Called after a POST failure
- *     or an exception while sending.
+ *     or an exception while sending. Respects what happened during the POST:
+ *     a deleted report stays deleted, a cancelled task stays cancelled.
  * UA: Повертає звіт зі стану SENDING у QUEUED (з back-off) або у ERROR
  *     (якщо вже багато невдач). Викликається після провалу POST або винятку.
+ *     Поважає те, що сталося під час POST: видалений звіт лишається
+ *     видаленим, скасоване завдання — скасованим.
  *
  * @param {import("./sync-queue-store.js").QueueItem} item
  * @param {import("./report-model.js").Report} rSending
@@ -163,6 +199,26 @@ export async function rotateSyncLog() {
  * @returns {Promise<void>}
  */
 async function applySendFailure_(item, rSending, nextAttempts, errMsg) {
+  const { latest, taskAlive } = await readStateAfterPost_(item, rSending);
+
+  if (!latest) {
+    // Deleted while sending — nothing to retry.
+    await queueStore.removeQueueItem(item.queueId);
+    return;
+  }
+
+  if (!taskAlive) {
+    // Cancelled or re-enqueued by the user while sending: their action wins.
+    // Only make sure the report is not left hanging in SENDING.
+    if (latest.syncStatus === SYNC_STATUS.SENDING) {
+      await reportsStore.putReport(
+        patchReportMeta(latest, { syncStatus: SYNC_STATUS.DRAFT, locked: false }),
+      );
+      emitReportsChanged();
+    }
+    return;
+  }
+
   const failIdx = Math.min(nextAttempts - 1, RETRY_MS.length - 1);
   const delay = RETRY_MS[Math.max(0, failIdx)];
   const nextRetry = new Date(Date.now() + delay).toISOString();
@@ -170,7 +226,7 @@ async function applySendFailure_(item, rSending, nextAttempts, errMsg) {
   if (nextAttempts > RETRY_MS.length + 2) {
     await queueStore.removeQueueItem(item.queueId);
     await reportsStore.putReport(
-      patchReportMeta(rSending, { syncStatus: SYNC_STATUS.ERROR, locked: false }),
+      patchReportMeta(latest, { syncStatus: SYNC_STATUS.ERROR, locked: false }),
     );
   } else {
     await queueStore.updateQueueItem({
@@ -180,7 +236,7 @@ async function applySendFailure_(item, rSending, nextAttempts, errMsg) {
       nextRetryAt: nextRetry,
     });
     await reportsStore.putReport(
-      patchReportMeta(rSending, { syncStatus: SYNC_STATUS.QUEUED, locked: false }),
+      patchReportMeta(latest, { syncStatus: SYNC_STATUS.QUEUED, locked: false }),
     );
   }
   emitReportsChanged();
@@ -236,23 +292,53 @@ export async function processOneQueueItem() {
     const res = await postUpsertReport(rSending, settings);
     if (res.ok) {
       await queueStore.removeQueueItem(item.queueId);
-      const locked =
-        settings.lockAfterSend &&
-        (settings.correctionsOnlyAfterSend === true ||
-          settings.correctionsOnlyAfterSend === undefined);
-      const publishedAt = new Date().toISOString();
 
+      const { latest, edited } = await readStateAfterPost_(item, rSending);
+      if (!latest) {
+        // EN: Deleted while the POST was in flight. The row is in the sheet,
+        //     but locally the report must stay deleted.
+        // UA: Видалено, поки тривав POST. Рядок у таблиці є, але локально
+        //     звіт має лишитися видаленим.
+        await appendSyncLog(report.id, "OK (report deleted locally during send)", "success");
+        return true;
+      }
+
+      const publishedAt = new Date().toISOString();
       const serverRowId =
         res.body && typeof res.body === "object" && "sheet_row_id" in res.body
           ? String(res.body.sheet_row_id)
           : null;
-
-      const next = patchReportMeta(rSending, {
-        syncStatus: SYNC_STATUS.SENT,
-        locked,
+      const rowPatch = {
         publishedAt,
         ...(serverRowId ? { sheetRowId: serverRowId } : {}),
-      });
+      };
+
+      let next;
+      if (edited) {
+        // EN: Fields changed during the POST — the sheet holds the OLD
+        //     version. Keep the edit; if nothing else has already moved the
+        //     report on (e.g. re-enqueued), flag it for resync.
+        // UA: Поля змінили під час POST — у таблиці СТАРА версія. Правку
+        //     зберігаємо; якщо звіт ще ніхто не перевів далі (напр. знову
+        //     у чергу) — позначаємо, що потрібна ресинхронізація.
+        next = patchReportMeta(latest, {
+          ...rowPatch,
+          locked: false,
+          ...(latest.syncStatus === SYNC_STATUS.SENDING
+            ? { syncStatus: SYNC_STATUS.RESYNC_REQUIRED }
+            : {}),
+        });
+      } else {
+        const locked =
+          settings.lockAfterSend &&
+          (settings.correctionsOnlyAfterSend === true ||
+            settings.correctionsOnlyAfterSend === undefined);
+        next = patchReportMeta(latest, {
+          ...rowPatch,
+          syncStatus: SYNC_STATUS.SENT,
+          locked,
+        });
+      }
       await reportsStore.putReport(next);
       await appendSyncLog(report.id, "OK", "success");
       emitReportsChanged();
