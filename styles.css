@@ -962,7 +962,6 @@ input.ui-time {
   color: var(--muted);
   font-size: 12px;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .confirm-dialog-title {
@@ -1246,9 +1245,10 @@ input.ui-time {
 
 .card-action-icon {
   display: flex;
+  flex: 0 1 44px;
   align-items: center;
   justify-content: center;
-  width: 44px;
+  min-width: 28px;
   height: 44px;
   padding: 0;
   border: 1px solid transparent;
@@ -1275,6 +1275,28 @@ input.ui-time {
 .card-action-icon.accent:active {
   background: rgba(85, 243, 255, 0.14);
   border-color: rgba(85, 243, 255, 0.7);
+}
+/* Danger = delete; always last, set apart from the other actions by a divider */
+.card-action-icon.danger {
+  position: relative;
+  margin-left: 8px;
+  color: var(--danger);
+  border-color: rgba(255, 77, 109, 0.35);
+}
+.card-action-icon.danger::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: -9px;
+  width: 1px;
+  background: var(--stroke2);
+}
+.card-action-icon.danger:hover,
+.card-action-icon.danger:active {
+  color: #fff;
+  background: rgba(255, 77, 109, 0.22);
+  border-color: rgba(255, 77, 109, 0.8);
 }
 /* Warn = error retry */
 .card-action-icon.warn {

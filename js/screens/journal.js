@@ -20,6 +20,7 @@
  *         RESYNC_REQUIRED → Send-changes / Edit
  *         ERROR   → Retry / Edit
  *         LOCKED  → Correct
+ *         any status → Delete (two-step confirmation)
  *     - all stats live in `journal-stats.js` (extracted module) so this
  *       file stays focused on UI wiring,
  *     - subscribes to the global `reportsUpdated` event so the screen
@@ -50,6 +51,7 @@
  *         RESYNC_REQUIRED → Надіслати зміни / Редагувати
  *         ERROR   → Повторити / Редагувати
  *         LOCKED  → Виправити
+ *         будь-який статус → Видалити (двокрокове підтвердження)
  *     - вся статистика — у `journal-stats.js` (виокремлений модуль), щоб
  *       цей файл лишався UI-орієнтованим,
  *     - підписаний на глобальну подію `reportsUpdated` — щоб реагувати
@@ -755,6 +757,42 @@ function appendActionIcons(row, item) {
       if (r) openEditDialog(r, "correction");
     });
   }
+
+  // EN: Delete is available in EVERY status and always sits last, behind a
+  //     divider (see `.card-action-icon.danger`), so it is not hit while
+  //     aiming at a neighbour.
+  // UA: Видалення доступне у БУДЬ-ЯКОМУ статусі й завжди стоїть останнім, за
+  //     роздільником (див. `.card-action-icon.danger`) — щоб не натиснути
+  //     його, цілячись у сусідню кнопку.
+  mk(IC.trash, "Видалити звіт", () => deleteOneWithConfirm(item), "danger");
+}
+
+/**
+ * EN: Deletes a single report after the two-step confirmation. The report
+ *     text is shown in the dialog so the user sees what exactly goes away.
+ *     A row already written to Google Sheets is not touched — we say so.
+ * UA: Видаляє один звіт після двокрокового підтвердження. У діалозі показано
+ *     текст звіту — видно, що саме зникне. Рядок, уже записаний у Google
+ *     Таблицю, не чіпаємо — і попереджаємо про це.
+ * @param {import("../report-model.js").Report} item
+ */
+async function deleteOneWithConfirm(item) {
+  const wasPublished =
+    item.syncStatus === SYNC_STATUS.SENT ||
+    item.syncStatus === SYNC_STATUS.LOCKED ||
+    item.syncStatus === SYNC_STATUS.RESYNC_REQUIRED;
+
+  const ok = await confirmDeletion({
+    title: "Видалити звіт?",
+    message: wasPublished
+      ? "Звіт буде видалено з архіву на цьому пристрої. Він уже надісланий у Google Таблицю — рядок там залишиться."
+      : "Звіт буде видалено з архіву на цьому пристрої.",
+    details: item.text || "",
+  });
+  if (!ok) return;
+
+  await deleteReportsByIds([item.id]);
+  await renderForSelectedPeriod();
 }
 
 // ── Edit dialog save handler ──────────────────────────────────────────────────

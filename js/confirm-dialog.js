@@ -120,7 +120,7 @@ export function confirmDeletion(opt) {
 
     const renderStep = () => {
       d.classList.toggle("confirm-dialog--final", step === 2);
-      stepEl.textContent = `Підтвердження ${step} з 2`;
+      stepEl.textContent = `Крок ${step} із 2`;
       detailsEl.textContent = details;
       detailsEl.hidden = !details;
 
