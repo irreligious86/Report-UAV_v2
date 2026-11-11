@@ -63,7 +63,11 @@ import { listReports, deleteReportsByIds } from "../report-actions.js";
 import { STORAGE_KEY_MAP_BASEMAP } from "../constants.js";
 import { $, setStatus, isoToDDMMYYYY } from "../utils.js";
 import { copyText } from "../clipboard.js";
-import { toPoint } from "https://esm.sh/mgrs@2.1.0";
+// EN: Vendored copy — a static import from a CDN would break the whole module
+//     graph (and therefore the app boot) when the device is offline.
+// UA: Локальна копія — статичний імпорт із CDN ламає весь граф модулів
+//     (тобто запуск застосунку), коли пристрій офлайн.
+import { toPoint } from "../vendor/mgrs.esm.js";
 import {
   loadPeriodFilter,
   isWithinPeriodFilter,

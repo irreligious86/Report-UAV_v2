@@ -60,6 +60,8 @@ const ASSETS = [
   './js/screens/map.js',
   './js/screens/help.js',
   './js/crypto/legacy-import.js',
+  './js/vendor/mgrs.esm.js',
+  './js/vendor/Sortable.min.js',
 ];
 
 self.addEventListener('install', (event) => {

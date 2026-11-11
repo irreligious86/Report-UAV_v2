@@ -98,11 +98,13 @@ DRAFT → SCHEDULED (delayed) → QUEUED → SENDING → SENT [→ locked]
 | period filter | `filters.js` | Останній вибраний період |
 | basemap | `map.js` | Вибрана підкладка карти |
 
-### Зовнішні залежності (CDN)
+### Зовнішні залежності
 
-- **Leaflet 1.9.4** — CSS: `<link>` в index.html; JS: dynamic import в `map.js` (esm.sh)
-- **mgrs 2.1.0** — dynamic import в `map.js` (esm.sh)
-- **Sortable.js** — dynamic import в `settings.js` (esm.sh)
+- **mgrs 2.1.0** — локальна копія `js/vendor/mgrs.esm.js` (статичний import у `map.js`)
+- **Sortable.js 1.15.2** — локальна копія `js/vendor/Sortable.min.js` (`<script>` в index.html → `window.Sortable`)
+- **Leaflet 1.9.4** — CDN (unpkg): CSS `<link>` + `<script>` в index.html → `window.L`; без мережі карта просто не ініціалізується
+
+Усе, без чого застосунок не стартує, лежить локально і кешується Service Worker-ом. **Не додавати статичних `import` з CDN** — без мережі впаде весь граф модулів і застосунок не запуститься.
 
 Жодного build-степу. Pure ES modules. Service Worker кешує всі локальні assets.
 
