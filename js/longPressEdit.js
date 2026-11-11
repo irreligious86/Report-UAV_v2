@@ -5,24 +5,11 @@
  */
 
 import { $ } from "./utils.js";
+import { setSelectValue } from "./config.js";
 import { LONG_PRESS_MS } from "./constants.js";
 
 // Keep original selects (with their event listeners) while we swap to input mode.
 const originalSelects = new Map();
-
-/**
- * Ensure select can show a custom value: if option doesn't exist, add it.
- * Гарантируем, что select сможет показать произвольное значение: если опции нет — добавляем.
- */
-function ensureSelectHasValue(selectEl, value) {
-  if (!value) return;
-  const exists = Array.from(selectEl.options).some((o) => o.value === value);
-  if (!exists) {
-    const opt = new Option(value, value, true, true);
-    selectEl.add(opt);
-  }
-  selectEl.value = value;
-}
 
 /**
  * Exits edit mode: replaces <input> back with the original <select>, restores handlers.
@@ -36,7 +23,8 @@ function exitEditMode(selectId, newValue, datalistId, maxLen) {
   if (!original) return;
 
   // Put the original select back (keeps any listeners attached earlier).
-  ensureSelectHasValue(original, newValue);
+  // A value that is not in the list becomes a custom option (data-custom="1").
+  setSelectValue(original, String(newValue || "").trim(), { allowCustom: true });
 
   el.parentNode.replaceChild(original, el);
 

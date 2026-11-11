@@ -38,12 +38,16 @@ import { CONFIG_URL, STORAGE_KEY_CONFIG_OVERRIDES } from "./constants.js";
 
 /**
  * EN: Replaces a `<select>`'s options with the given strings (value === text).
- * UA: Замінює опції `<select>` заданими рядками (value === text).
- * @param {HTMLSelectElement | null} selectEl
+ *     Anything that is not a real `<select>` is ignored — while a field is in
+ *     long-press edit mode its id temporarily belongs to an `<input>`.
+ * UA: Замінює опції `<select>` заданими рядками (value === text). Усе, що не
+ *     є справжнім `<select>`, ігнорується — у режимі long-press-редагування
+ *     цей id тимчасово належить `<input>`.
+ * @param {HTMLElement | null} selectEl
  * @param {string[]} items
  */
 export function fillSelect(selectEl, items) {
-  if (!selectEl) return;
+  if (!(selectEl instanceof HTMLSelectElement)) return;
   selectEl.innerHTML = "";
   for (const name of (items || [])) {
     const opt = document.createElement("option");
@@ -51,6 +55,35 @@ export function fillSelect(selectEl, items) {
     opt.textContent = name;
     selectEl.appendChild(opt);
   }
+}
+
+/**
+ * EN: Selects `value` in a `<select>`. If no such option exists and
+ *     `allowCustom` is set, a new option is appended and marked with
+ *     `data-custom="1"` (free text typed by the user, not a list item).
+ *     Returns true when the select now shows `value`.
+ * UA: Обирає `value` у `<select>`. Якщо такої опції немає і дозволено
+ *     `allowCustom` — додає нову опцію з міткою `data-custom="1"` (вільний
+ *     текст користувача, а не пункт списку). Повертає true, якщо select
+ *     тепер показує `value`.
+ * @param {HTMLElement | null} selectEl
+ * @param {string} value
+ * @param {{ allowCustom?: boolean }} [opt]
+ * @returns {boolean}
+ */
+export function setSelectValue(selectEl, value, opt = {}) {
+  if (!(selectEl instanceof HTMLSelectElement)) return false;
+  const v = String(value ?? "");
+  if (!v) return false;
+  const exists = Array.from(selectEl.options).some((o) => o.value === v);
+  if (!exists) {
+    if (!opt.allowCustom) return false;
+    const custom = new Option(v, v);
+    custom.dataset.custom = "1";
+    selectEl.add(custom);
+  }
+  selectEl.value = v;
+  return true;
 }
 
 /**
@@ -88,31 +121,64 @@ export async function loadConfig() {
 }
 
 /**
+ * EN: Select id → [list key in config, key in `cfg.defaults`].
+ * UA: id select-а → [ключ списку в config, ключ у `cfg.defaults`].
+ */
+const SELECT_BINDINGS = [
+  ["drone", "drones", "drone"],
+  ["missionType", "missionTypes", "missionType"],
+  ["ammo", "ammo", "ammo"],
+  ["result", "results", "result"],
+  ["mgrsPrefix", "mgrsPrefixes", "mgrsPrefix"],
+];
+
+/**
  * EN: Applies a fully-merged config object to the form: fills every
- *     select/datalist, then sets the default values declared in
- *     `cfg.defaults` (mgrsPrefix / missionType / result), then refreshes
- *     empty-field highlights.
+ *     select/datalist and refreshes empty-field highlights.
+ *
+ *     The call is safe to repeat while the user is filling the form (the
+ *     Settings screen re-applies lists after every edit): whatever is
+ *     currently selected stays selected. Per select:
+ *       1) value still in the list            → keep it,
+ *       2) value was free text (long-press)   → keep it as a custom option,
+ *       3) value is gone / first boot         → `cfg.defaults`, if that
+ *          default exists in the list; otherwise the first item.
  * UA: Застосовує повністю злитий обʼєкт config до форми: заповнює всі
- *     select/datalist, виставляє типові значення з `cfg.defaults`
- *     (mgrsPrefix / missionType / result), оновлює підсвітку порожніх полів.
+ *     select/datalist і оновлює підсвітку порожніх полів.
+ *
+ *     Виклик безпечно повторювати, поки користувач заповнює форму (екран
+ *     «Налаштування» перезастосовує списки після кожної правки): обране
+ *     значення лишається обраним. Для кожного select:
+ *       1) значення ще є у списку            → лишаємо,
+ *       2) значення було вільним текстом     → лишаємо як custom-опцію,
+ *       3) значення зникло / перший запуск   → `cfg.defaults`, якщо воно є
+ *          у списку; інакше — перший пункт.
  * @param {object} cfg
  */
 export function applyConfig(cfg) {
   const lists = cfg?.lists || {};
-  fillSelect($("drone"), lists.drones || []);
-  fillSelect($("missionType"), lists.missionTypes || []);
-  fillSelect($("ammo"), lists.ammo || []);
-  fillSelect($("result"), lists.results || []);
-  fillSelect($("mgrsPrefix"), lists.mgrsPrefixes || []);
+  const defaults = cfg?.defaults || {};
+
+  for (const [id, listKey, defaultKey] of SELECT_BINDINGS) {
+    const el = $(id);
+    if (!(el instanceof HTMLSelectElement)) continue;
+
+    const prevValue = el.value;
+    const prevWasCustom = el.selectedOptions[0]?.dataset.custom === "1";
+
+    fillSelect(el, lists[listKey] || []);
+
+    const kept =
+      setSelectValue(el, prevValue) ||
+      (prevWasCustom && setSelectValue(el, prevValue, { allowCustom: true }));
+    if (!kept) setSelectValue(el, defaults[defaultKey]);
+  }
 
   fillDatalist($("droneList"), lists.drones || []);
   fillDatalist($("missionTypeList"), lists.missionTypes || []);
   fillDatalist($("ammoList"), lists.ammo || []);
   fillDatalist($("resultList"), lists.results || []);
 
-  if (cfg?.defaults?.mgrsPrefix) $("mgrsPrefix").value = cfg.defaults.mgrsPrefix;
-  if (cfg?.defaults?.missionType) $("missionType").value = cfg.defaults.missionType;
-  if (cfg?.defaults?.result) $("result").value = cfg.defaults.result;
   updateEmptyHighlights();
 }
 
