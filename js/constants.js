@@ -26,7 +26,7 @@ export const STREAM_PLACEHOLDER = "---";
 export const FORM_TEXT_FIELD_MAX_LENGTH = 32;
 
 /** EN: Max reports in IndexedDB; bulk import may drop oldest. UA: Максимум звітів у IndexedDB; при імпорті старі можуть відсіктися. */
-export const REPORTS_LIMIT = 500;
+export const REPORTS_LIMIT = 1000;
 
 /** EN: User overrides for `config.json` lists (settings screen). UA: Перевизначення списків з `config.json` (екран налаштувань). */
 export const STORAGE_KEY_CONFIG_OVERRIDES = "uav_report_config_overrides_v1";
