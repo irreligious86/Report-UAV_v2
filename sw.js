@@ -40,6 +40,7 @@ const ASSETS = [
   './js/generate.js',
   './js/form-draft.js',
   './js/confirm-dialog.js',
+  './js/toast.js',
   './js/filters.js',
   './js/date-utils.js',
   './js/ui-native-datetime.js',

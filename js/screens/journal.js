@@ -66,7 +66,8 @@
  * @module screens/journal
  */
 
-import { $, isoToDDMMYYYY, setStatus } from "../utils.js";
+import { $, isoToDDMMYYYY } from "../utils.js";
+import { showToast } from "../toast.js";
 import { formatUiDateFromIso, parseUiDateToIso, formatUiTime } from "../date-utils.js";
 import {
   bindNativeDatePicker,
@@ -105,12 +106,22 @@ let initialized = false;
 /** Розгорнутий список карток журналу (майже на весь екран). */
 let journalListExpanded = false;
 
+/**
+ * EN: Texts of the reports currently shown in the list, in list order —
+ *     the source for «Копіювати всі зі списку».
+ * UA: Тексти звітів, які зараз показано у списку, в порядку списку —
+ *     джерело для «Копіювати всі зі списку».
+ * @type {string[]}
+ */
+let listedTexts = [];
+
 // ── Utility helpers ───────────────────────────────────────────────────────────
 
-/** Copy text to clipboard with status message. */
+/** Copy text to clipboard and tell the user (toast — visible on this screen). */
 async function copyTextSmart(text) {
   const ok = await copyText(text);
-  setStatus(ok ? "Скопійовано." : "Помилка копіювання.");
+  if (ok) showToast("Скопійовано.");
+  else showToast("Помилка копіювання.", { error: true });
 }
 
 
@@ -296,27 +307,6 @@ function renderEditFields(container, report) {
   }
 }
 
-function readEditFields(container) {
-  const inputs = container?.querySelectorAll("[data-field-key]") || [];
-  /** @type {Record<string, string>} */
-  const raw = {};
-  inputs.forEach((el) => {
-    if (!(el instanceof HTMLInputElement)) return;
-    const k = el.dataset.fieldKey;
-    if (!k) return;
-    raw[k] = el.value;
-  });
-  let crewCounter = null;
-  if (raw.crewCounter !== undefined && raw.crewCounter !== "") {
-    const n = parseInt(raw.crewCounter, 10);
-    crewCounter = Number.isFinite(n) ? n : null;
-  }
-  return normalizeFields({
-    ...raw,
-    crewCounter,
-  });
-}
-
 /**
  * @param {import("../report-model.js").Report} report
  */
@@ -439,6 +429,17 @@ export async function initJournalScreen() {
     };
   }
 
+  const btnCopyAll = $("btnJournalCopyAll");
+  if (btnCopyAll) {
+    btnCopyAll.onclick = () => {
+      if (listedTexts.length === 0) {
+        showToast("Список порожній — нічого копіювати.", { error: true });
+        return;
+      }
+      void copyTextSmart(listedTexts.join("\n\n---\n\n"));
+    };
+  }
+
   const btnDelFiltered = $("btnJournalDeleteFiltered");
   if (btnDelFiltered) {
     btnDelFiltered.onclick = async () => {
@@ -461,6 +462,7 @@ export async function initJournalScreen() {
       if (!ok) return;
       await deleteReportsByIds(filtered.map((r) => r.id));
       await renderForSelectedPeriod();
+      showToast(`Видалено звітів: ${filtered.length}.`);
     };
   }
 
@@ -531,6 +533,11 @@ async function renderForSelectedPeriod() {
   }
 
   cardsEl.textContent = "";
+  // EN: Reset first — if the list ends up empty (or a card fails to build),
+  //     «Копіювати всі» must not copy the texts of a PREVIOUS list.
+  // UA: Спершу скидаємо — якщо список виявиться порожнім (або картка не
+  //     збереться), «Копіювати всі» не має копіювати тексти ПОПЕРЕДНЬОГО списку.
+  listedTexts = [];
 
   filtered.sort((a, b) => {
     const ta = getImpactTimestampForReport(a) ?? 0;
@@ -594,11 +601,7 @@ async function renderForSelectedPeriod() {
   }
 
   summaryEl.textContent = buildSummaryText(stats, period);
-
-  const btnCopyAll = $("btnJournalCopyAll");
-  if (btnCopyAll) {
-    btnCopyAll.onclick = () => copyTextSmart(stats.allTexts.join("\n\n---\n\n"));
-  }
+  listedTexts = stats.allTexts;
 }
 
 /**
@@ -793,6 +796,7 @@ async function deleteOneWithConfirm(item) {
 
   await deleteReportsByIds([item.id]);
   await renderForSelectedPeriod();
+  showToast("Звіт видалено.");
 }
 
 // ── Edit dialog save handler ──────────────────────────────────────────────────

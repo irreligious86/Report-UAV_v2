@@ -14,6 +14,8 @@
   --value: #00ff66;
   --muted: #7aa7a9;
   --danger: #ff4d6d;
+  /* Primary-action tint (send / resend icons). Was referenced but never defined. */
+  --accent: #55f3ff;
   --stroke: rgba(85, 243, 255, 0.18);
   --stroke2: rgba(0, 255, 102, 0.28);
 
@@ -931,6 +933,49 @@ input.ui-time {
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 12px;
+}
+
+/* ========================================================= */
+/* Toast — short message above every screen (js/toast.js)    */
+/* ========================================================= */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(22px + env(safe-area-inset-bottom));
+  z-index: 10000;
+  max-width: min(520px, calc(100vw - 28px));
+  padding: 10px 16px;
+  border: 1px solid rgba(0, 255, 102, 0.55);
+  border-radius: 12px;
+  background: rgba(6, 14, 12, 0.96);
+  color: var(--value);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 8px);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.toast--visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.toast--error {
+  border-color: rgba(255, 77, 109, 0.8);
+  color: var(--danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    transition: none;
+  }
 }
 
 /* ========================================================= */
