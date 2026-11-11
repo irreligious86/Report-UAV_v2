@@ -135,7 +135,6 @@ export function initNavigation() {
     const screenBtn = target.closest("[data-screen]");
     if (screenBtn instanceof HTMLElement && screenBtn.dataset.screen) {
       const nextId = screenBtn.dataset.screen;
-      const isOther = nextId !== currentScreenId;
 
       navigateTo(nextId);
       closeMenu();
