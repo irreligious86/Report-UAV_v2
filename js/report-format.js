@@ -27,7 +27,7 @@
  *     stream       — stream URL or `---` placeholder.
  *     result       — outcome free text. Format convention is
  *                    "Тип (деталі)", e.g. "Ураження (знищення антени)";
- *                    only the part before "(" drives KPI / categorisation
+ *                    only the part before "(" drives categorisation
  *                    in `result-mapping.js`.
  *
  *   Why a single canonical text builder:
@@ -63,7 +63,7 @@
  *     stream       — URL стріму або плейсхолдер `---`.
  *     result       — текст результату. Конвенція — «Тип (деталі)»,
  *                    наприклад «Ураження (знищення антени)»; лише
- *                    частина до «(» визначає KPI / категорію в
+ *                    частина до «(» визначає категорію в
  *                    `result-mapping.js`.
  *
  *   Чому єдиний канонічний будівельник тексту:
@@ -257,12 +257,12 @@ export function collectFieldsFromMainForm() {
 
 /**
  * EN: Returns the mission "impact" instant in ms (epoch). This is the
- *     timestamp used by the journal period filter, KPI calculations and
+ *     timestamp used by the journal period filter, the summary and
  *     the map. We deliberately use STRUCTURED `date + impact` (not the
  *     text or `createdAt`) so editing a report's mission time correctly
  *     moves it on the timeline. Returns null when either piece is missing.
  * UA: Повертає момент «ураження» у мс (epoch). Це той timestamp, що
- *     використовує фільтр періоду в журналі, обчислення KPI та мапа.
+ *     використовує фільтр періоду в журналі, зведення та мапа.
  *     Свідомо беремо СТРУКТУРНІ `date + impact` (не текст і не `createdAt`)
  *     — щоб редагування часу місії коректно зсувало звіт на таймлайні.
  *     null, якщо хоч одне з полів відсутнє.

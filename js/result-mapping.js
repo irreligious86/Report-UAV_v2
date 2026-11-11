@@ -1,9 +1,9 @@
 /**
- * Result mapping: raw “Результат” text → normalized category for KPI / journal.
+ * Result mapping: raw “Результат” text → normalized category for the journal summary.
  *
  * EN: Convention `key (details)` — only the key (text before `(`) drives categories.
  *     `RESULT_CATEGORIES` values are stable identifiers for stored reports.
- * UA: Конвенція «ключ (деталі)» — для KPI береться лише ключ (до дужки).
+ * UA: Конвенція «ключ (деталі)» — для категорії береться лише ключ (до дужки).
  *     Значення `RESULT_CATEGORIES` не змінювати без міграції сумісності.
  *
  * @module result-mapping
@@ -71,7 +71,7 @@ const KEYWORD_RULES = [
 ];
 
 /**
- * Розбирає рядок результату: ключ для KPI (до дужок) та текст у дужках як коментар.
+ * Розбирає рядок результату: ключ категорії (до дужок) та текст у дужках як коментар.
  * Очікуваний формат: «Ураження (знищення антени)» або без дужок — уесь рядок є ключем.
  * Якщо дужки «зламані» або ключ порожній — повертається весь рядок як ключ без деталей.
  *
@@ -153,22 +153,4 @@ export function mapResultToCategory(raw) {
   }
 
   return RESULT_CATEGORIES.OTHER;
-}
-
-/**
- * Чи відносить результат до «успішного» вильоту для KPI (підхід ураження).
- * @param {string} raw
- * @returns {boolean}
- */
-export function isKpiHit(raw) {
-  return mapResultToCategory(raw) === RESULT_CATEGORIES.HIT;
-}
-
-/**
- * Чи вважати результат губильним для лічильника втрат у журналі (втрата борта).
- * @param {string} raw
- * @returns {boolean}
- */
-export function isKpiLoss(raw) {
-  return mapResultToCategory(raw) === RESULT_CATEGORIES.LOSS;
 }

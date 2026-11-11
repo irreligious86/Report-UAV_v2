@@ -660,45 +660,8 @@ input.ui-time {
 }
 
 /* ========================================================= */
-/* KPI tiles + tabs                                          */
+/* Journal tabs                                              */
 /* ========================================================= */
-
-.dashboard-kpi {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.kpi-box {
-  padding: 10px;
-  border: 1px solid var(--stroke);
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(10, 15, 16, 0.92), rgba(10, 15, 16, 0.65));
-  text-align: center;
-  box-shadow: var(--shadow-btn);
-}
-
-.kpi-label {
-  color: var(--label);
-  font-size: 13px;
-  opacity: 0.9;
-}
-
-.kpi-value {
-  margin-top: 4px;
-  color: var(--value);
-  font-size: 22px;
-  font-weight: 900;
-}
-
-.kpi-value.success {
-  color: var(--value);
-}
-
-.kpi-value.danger {
-  color: var(--danger);
-}
 
 .dashboard-tabs {
   display: flex;
@@ -1619,10 +1582,6 @@ input.ui-time {
 
   #listsControls button {
     width: 100%;
-  }
-
-  .dashboard-kpi {
-    grid-template-columns: 1fr 1fr;
   }
 
   /* Карта на всю ширину та вища на смартфонах (звичайний режим) */

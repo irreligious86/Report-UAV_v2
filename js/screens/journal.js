@@ -1,5 +1,5 @@
 /**
- * Journal & statistics screen — list, KPIs, edit dialog, sync actions.
+ * Journal & statistics screen — list, summary, edit dialog, sync actions.
  *
  * EN:
  *   This screen has two tabs ("Статистика" and "Журнал") that share the
@@ -9,8 +9,8 @@
  *     - reads all reports via `report-actions.listReports`,
  *     - filters by the saved period (from/to date and time) and the
  *       search query (in the canonical text),
- *     - renders the cards on the "Журнал" tab and the textual summary +
- *       KPI tiles on the "Статистика" tab,
+ *     - renders the cards on the "Журнал" tab and the textual summary
+ *       on the "Статистика" tab,
  *     - each card has action icons whose set depends on the report's
  *       `syncStatus`:
  *         DRAFT   → Send / Edit / Schedule
@@ -39,8 +39,8 @@
  *     - читає всі звіти через `report-actions.listReports`,
  *     - фільтрує за збереженим періодом (дата/час від/до) і пошуковим
  *       запитом (по канонічному тексту),
- *     - малює картки на вкладці «Журнал» і текстове зведення + плитки
- *       KPI на «Статистиці»,
+ *     - малює картки на вкладці «Журнал» і текстове зведення
+ *       на «Статистиці»,
  *     - на кожній картці — набір іконок-дій, що залежить від
  *       `syncStatus` звіту:
  *         DRAFT   → Надіслати / Редагувати / Запланувати
@@ -95,7 +95,7 @@ import {
   isWithinPeriodFilter,
   getImpactTimestampForReport,
 } from "../filters.js";
-import { computeStats, buildSummaryText, updateKPI } from "../journal-stats.js";
+import { computeStats, buildSummaryText } from "../journal-stats.js";
 
 let initialized = false;
 
@@ -463,9 +463,9 @@ export async function initJournalScreen() {
 
 /**
  * EN: Called when the journal screen becomes visible — resets the period to
- *     today (full day) and refreshes the list/KPI.
+ *     today (full day) and refreshes the list/summary.
  * UA: Викликається при показі екрана журналу — скидає період на сьогодні
- *     (повна доба) і оновлює список/KPI.
+ *     (повна доба) і оновлює список/зведення.
  */
 export function onJournalScreenShown() {
   savePeriodFilter(getDefaultPeriodFilter());
@@ -534,7 +534,6 @@ async function renderForSelectedPeriod() {
 
   if (filtered.length === 0) {
     summaryEl.textContent = "За обраний період звітів не знайдено.";
-    updateKPI(0, 0, 0);
     return;
   }
 
@@ -594,8 +593,6 @@ async function renderForSelectedPeriod() {
   if (btnCopyAll) {
     btnCopyAll.onclick = () => copyTextSmart(stats.allTexts.join("\n\n---\n\n"));
   }
-
-  updateKPI(stats.total, stats.hits, stats.loss);
 }
 
 /**

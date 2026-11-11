@@ -82,7 +82,7 @@ DRAFT → SCHEDULED (delayed) → QUEUED → SENDING → SENT [→ locked]
 
 1. **Форма «Готово»:** `generate.js` → `report-actions.createAndStoreReport` → IDB → events
 2. **Фільтрація:** `filters.js` — `getImpactTimestampForReport` використовує `fields.date + fields.impact`, fallback `createdAt`
-3. **Журнал:** `journal.js` — `renderForSelectedPeriod()`, KPI, картки, редагування
+3. **Журнал:** `journal.js` — `renderForSelectedPeriod()`, зведення, картки, редагування
 4. **Карта:** `map.js` — ті ж відфільтровані звіти, `fields.coords` (MGRS→lat/lng)
 5. **Sync:** `sync-service.js` → `processSyncQueue` (drain chain, serialized) → `google-sheets-api.js` POST
 6. **UI-події:** `reportsChanged` / `reportsUpdated` — журнал підписаний і перемальовується
@@ -129,7 +129,7 @@ DRAFT → SCHEDULED (delayed) → QUEUED → SENDING → SENT [→ locked]
 
 1. **Поля Report:** контракт між `report-format.js`, IndexedDB, `google-sheets-api.js` та `Code.gs`. Змінив поле → перевір усі чотири точки.
 2. **`collectFieldsFromEditDialog`** шукає DOM-елементи за `data-field-key` — не прибирай цей атрибут.
-3. **`appendActionIcons`** у `journal.js` — без неї цикл карток обривається, KPI не оновлюється.
+3. **`appendActionIcons`** у `journal.js` — без неї цикл карток обривається, зведення не оновлюється.
 4. **Відповідь Apps Script:** для upsert/ping/prepare — валідний JSON з `ok: true` при успіху.
 5. **Імена stores IDB** зашиті в `db.js` — не перейменовувати без міграції.
 
@@ -141,7 +141,7 @@ DRAFT → SCHEDULED (delayed) → QUEUED → SENDING → SENT [→ locked]
 
 ### Типовий баг: «дані є, журнал порожній»
 
-JS-помилка **під час побудови картки** (виклик неіснуючої функції) — лічильник «Відібрано» вже оновлений, цикл обривається до `updateKPI` і додавання карток. Перевіряй консоль.
+JS-помилка **під час побудови картки** (виклик неіснуючої функції) — лічильник «Відібрано» вже оновлений, цикл обривається до оновлення зведення і додавання карток. Перевіряй консоль.
 
 ### Конвенції нейминга
 
@@ -161,7 +161,7 @@ UI: **українська**. Код: коментарі EN + UA в JSDoc. До�
 1. **Не міняти формат `reportId`** (`rpt_YYYYMMDD_XXXXXXXX`) — на ньому тримається upsert в Google Sheets, merge при імпорті, пошук у IDB.
 2. **Не перейменовувати stores IDB** (`reports`, `sync_queue`, `settings`, `sync_log`) — без написання міграції в `db.js` `onupgradeneeded` це зламає всі дані.
 3. **Не прибирати атрибут `data-field-key`** з DOM — `collectFieldsFromEditDialog` залежить від нього.
-4. **Не видаляти `appendActionIcons`** у `journal.js` — без неї цикл карток обривається, KPI не оновлюється.
+4. **Не видаляти `appendActionIcons`** у `journal.js` — без неї цикл карток обривається, зведення не оновлюється.
 5. **Не використовувати `var`, `arguments`, `new Function`** — код 100% ES modules.
 6. **Не додавати JS-файли без оновлення `sw.js` ASSETS** + bump `CACHE_NAME`.
 

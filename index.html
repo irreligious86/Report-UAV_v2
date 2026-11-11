@@ -198,30 +198,6 @@ readonly></textarea>
 
 <div id="dashboard">
 
-<div class="dashboard-kpi">
-
-<div class="kpi-box">
-<div class="kpi-label">Вильотів</div>
-<div class="kpi-value" id="kpiTotal">0</div>
-</div>
-
-<div class="kpi-box">
-<div class="kpi-label">Уражень</div>
-<div class="kpi-value success" id="kpiHits">0</div>
-</div>
-
-<div class="kpi-box">
-<div class="kpi-label">Втрат</div>
-<div class="kpi-value danger" id="kpiLoss">0</div>
-</div>
-
-<div class="kpi-box">
-<div class="kpi-label">Ефективність</div>
-<div class="kpi-value" id="kpiRate">0%</div>
-</div>
-
-</div>
-
 <div class="dashboard-tabs">
 <button id="tabStats" class="tab active" type="button">Статистика</button>
 <button id="tabJournal" class="tab" type="button">Журнал</button>
@@ -230,7 +206,6 @@ readonly></textarea>
 <p class="journal-archive-info" id="journalArchiveInfo" role="status"></p>
 
 <div id="statsSection">
-<div id="barsContainer"></div>
 <div class="journal-summary" id="journalSummary"></div>
 
 <button class="btn" type="button" id="btnCopyJournalSummary">
@@ -517,7 +492,7 @@ title="Зберегти зміни"
 <nav class="help-toc" aria-label="Швидка навігація">
   <button class="help-chip" type="button" data-help-jump="help-sec-1">1 · Про застосунок</button>
   <button class="help-chip" type="button" data-help-jump="help-sec-2">2 · Форма звіту</button>
-  <button class="help-chip" type="button" data-help-jump="help-sec-3">3 · Журнал і KPI</button>
+  <button class="help-chip" type="button" data-help-jump="help-sec-3">3 · Журнал і статистика</button>
   <button class="help-chip" type="button" data-help-jump="help-sec-4">4 · Дані та шифрування</button>
   <button class="help-chip" type="button" data-help-jump="help-sec-5">5 · Карта місій</button>
   <button class="help-chip" type="button" data-help-jump="help-sec-6">6 · Списки</button>
@@ -553,8 +528,8 @@ title="Зберегти зміни"
   </div>
   <div class="help-feature">
     <div class="help-feature-icon" aria-hidden="true">📊</div>
-    <div class="help-feature-title">Журнал + KPI</div>
-    <div class="help-feature-text">Вильоти, ураження, втрати, ефективність за період.</div>
+    <div class="help-feature-title">Журнал + статистика</div>
+    <div class="help-feature-text">Зведення за бортами, боєприпасами, місіями й результатами за період.</div>
   </div>
   <div class="help-feature">
     <div class="help-feature-icon" aria-hidden="true">🗺️</div>
@@ -611,7 +586,7 @@ title="Зберегти зміни"
 • <strong>Координати</strong> — формат MGRS: префікс із списку + два блоки по 5 цифр (easting) та (northing).<br>
 • <strong>Боєприпас</strong> — зі списку або довільний ввід.<br>
 • <strong>Стрім</strong> — посилання на потік або плейсхолдер «---».<br>
-• <strong>Результат</strong> — зі списку або довільний текст; для зручності статистики рекомендовано формат <strong>тип результату</strong>, при потребі пробіл і <strong>деталі в круглих дужках</strong>. Для KPI і групування в журналі використовується лише частина <em>до першої дужки</em> (ключ); текст у дужках лише уточнює звіт і не змінює категорію. Наприклад: <code>Ураження (знищення антени)</code>.
+• <strong>Результат</strong> — зі списку або довільний текст; для зручності статистики рекомендовано формат <strong>тип результату</strong>, при потребі пробіл і <strong>деталі в круглих дужках</strong>. Для групування у зведенні «Статистика» використовується лише частина <em>до першої дужки</em> (ключ); текст у дужках лише уточнює звіт і не змінює категорію. Наприклад: <code>Ураження (знищення антени)</code>.
 </p>
 </div>
 </details>
@@ -635,12 +610,12 @@ title="Зберегти зміни"
 </details>
 
 <!-- ────────────────────────────────────────────────────────────── -->
-<!-- Секція 3 — Журнал і KPI.                                       -->
+<!-- Секція 3 — Журнал і статистика.                                -->
 <!-- ────────────────────────────────────────────────────────────── -->
 <details class="help-section" id="help-sec-3">
 <summary class="help-section-title">
   <span class="help-section-num">3</span>
-  <span class="help-section-heading-text">Журнал, KPI та робота з історією</span>
+  <span class="help-section-heading-text">Журнал, статистика та робота з історією</span>
   <svg class="help-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"
        stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <polyline points="6 9 12 15 18 9"/>
@@ -651,18 +626,10 @@ title="Зберегти зміни"
 <p>Екран <strong>«Журнал та статистика»</strong> читає звіти з <strong>IndexedDB</strong>; є верхня межа кількості записів на пристрої. Один і той самий період і пошук застосовуються до зведення, списку карток і карти.</p>
 
 <details class="help-sub" open>
-<summary class="help-sub-summary">Фільтр періоду та KPI</summary>
+<summary class="help-sub-summary">Фільтр періоду</summary>
 <div class="help-sub-body">
 <p class="help-kicker"><em>Фільтр періоду</em></p>
 <p>Дата «від / до» у форматі <strong>ДД.ММ.РРРР</strong>, час «від / до» — <strong>ГГ:ХХ</strong> (24 години). Фільтр будується зі структурованих полів звіту: <strong>дата місії</strong> та <strong>час ураження/втрати</strong> (не з «ручного» парсингу довільного тексту). При відкритті екрана журналу період за замовчуванням скидається на <strong>поточний день</strong> (00:00–23:59). Кнопка «Показати» фіксує умови; лічильник «Відібрано звітів: N із M» показує, скільки записів потрапило під фільтр порівняно з усім архівом.</p>
-
-<p class="help-kicker"><em>KPI (плитки зверху):</em></p>
-<p class="help-bullets">
-• <strong>Вильотів</strong> — кількість звітів, що пройшли фільтр періоду й пошуку.<br>
-• <strong>Уражень</strong> — серед них кількість із нормалізованою категорією результату «Ураження» за ключем до дужок.<br>
-• <strong>Втрат</strong> — кількість із категорією «Втрата борта».<br>
-• <strong>Ефективність</strong> — відношення уражень до загальної кількості відфільтрованих вильотів у відсотках.
-</p>
 </div>
 </details>
 
